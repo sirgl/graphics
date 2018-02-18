@@ -5,17 +5,17 @@ import sirgl.graphics.canvas.ScrolledCanvas
 import sirgl.graphics.components.SplitPanel
 import sirgl.graphics.core.App
 import java.awt.Dimension
-import javax.swing.JFrame
-import javax.swing.JPanel
-import javax.swing.JTextArea
-import javax.swing.WindowConstants
+import javax.swing.*
 
 class MainPanel(app: App) : JPanel() {
     init {
+        layout = BoxLayout(this, BoxLayout.X_AXIS)
         app.repaintAllObservable.subscribe {
             revalidate()
             repaint()
         }
+        minimumSize = Dimension(800, 600)
+
         val scrolledCanvas = ScrolledCanvas(app, Canvas(app))
         val settingsPanel = SettingsPanel(app)
         add(SplitPanel(scrolledCanvas, settingsPanel, 1.5, 0.5))

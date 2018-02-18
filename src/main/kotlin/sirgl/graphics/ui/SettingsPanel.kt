@@ -7,6 +7,7 @@ import sirgl.graphics.core.App
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.map
 import sirgl.graphics.observable.transmitTo
+import java.awt.Dimension
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 import javax.swing.*
@@ -19,6 +20,7 @@ class SettingsPanel(private val app: App) : JPanel() {
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         val label = JLabel()
+        size = Dimension(200, 700)
         add(label)
         app.currentPositionObservable.subscribe {
             it ?: return@subscribe

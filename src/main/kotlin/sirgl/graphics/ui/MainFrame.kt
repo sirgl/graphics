@@ -13,7 +13,6 @@ class MainFrame(val app: App) : JFrame() {
         add(MainPanel(app))
         createMenu()
 
-        minimumSize = Dimension(800, 600)
 
         defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
     }
