@@ -12,12 +12,13 @@ private const val bucketWidth = bucketBoxWidth - 2
 
 class GistCanvas(gistObservable: Observable<Gist>) : JPanel() {
     var gist: Gist? = null
-    val panelHeight = 200
+    private val panelHeight = 200
 
     init {
         size = Dimension(200, panelHeight)
         gistObservable.subscribe {
             it ?: return@subscribe
+            gist = it
             repaint()
         }
     }
@@ -26,13 +27,15 @@ class GistCanvas(gistObservable: Observable<Gist>) : JPanel() {
         super.paint(g)
         val gistVal = gist
         gistVal ?: return
-        for ((index, bucketSize) in gistVal.buckets.withIndex()) {
-            drawBucket(index, bucketSize, g, gistVal)
+        val buckets = gistVal.buckets
+        val maxSize = buckets.max() ?: return
+        for ((index, bucketSize) in buckets.withIndex()) {
+            drawBucket(index, bucketSize, g, gistVal, maxSize)
         }
     }
 
-    fun drawBucket(bucketIndex: Int, bucketSize: Int, g: Graphics, gist: Gist) {
-        val bucketHeight = Math.round(bucketSize - gist.min / gist.diff * 200).toInt()
+    fun drawBucket(bucketIndex: Int, bucketSize: Int, g: Graphics, gist: Gist, maxSize: Int) {
+        val bucketHeight = Math.round(bucketSize.toDouble() / maxSize * 200).toInt()
         val x = bucketIndex * bucketBoxWidth
         val y = panelHeight - bucketHeight
         g.drawRect(x, y, bucketWidth, bucketHeight)

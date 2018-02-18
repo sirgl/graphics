@@ -3,12 +3,15 @@ package sirgl.graphics.core
 import sirgl.graphics.canvas.MouseDraggedEvt
 import sirgl.graphics.canvas.Point
 import sirgl.graphics.conversion.*
+import sirgl.graphics.core.GistType.*
 import sirgl.graphics.gist.Gist
 import sirgl.graphics.observable.*
 import java.awt.Color
 import java.awt.image.BufferedImage
 
 object RefreshAllEvent
+
+enum class GistType { L, A, B }
 
 @Suppress("RemoveExplicitTypeArguments")
 class App {
@@ -28,7 +31,8 @@ class App {
         repaintAllObservable.value = RefreshAllEvent
     }
 
-    val gistObservable: Observable<Gist> = SimpleObservable<Gist>(null)
+    val gistObservable: Observable<Gist> = imageToDrawObservable.map { recomputeGist(it ?: return@map null) }
+    val gistTypeObservable: Observable<GistType> = SimpleObservable<GistType>(L)
 
     val currentPositionObservable: Observable<Point> = SimpleObservable<Point>(null)
     val mouseDraggedObservable: Observable<MouseDraggedEvt> = SimpleObservable<MouseDraggedEvt>(null)
@@ -43,18 +47,48 @@ class App {
     val currentLAB: Observable<LAB> = SimpleObservable(currentRGB).map { (it ?: return@map null).toLab() }
 
     fun init() {
-        imageToDrawObservable.recomputeOnChange(hSliderPosition, sSliderPosition, vSliderPosition)
+        imageToDrawObservable.recomputeOnChange(
+                observables = *arrayOf(hSliderPosition, sSliderPosition, vSliderPosition),
+                recomputeAction = { transformImage(imageObservable.value) }
+        )
+
+        gistObservable.recomputeOnChange(
+                observables = *arrayOf(gistTypeObservable),
+                recomputeAction = {
+                    val img = imageObservable.value ?: return@recomputeOnChange null
+                    return@recomputeOnChange recomputeGist(img)
+                }
+        )
     }
 
-    private fun Observable<BufferedImage>.recomputeOnChange(vararg observables: Observable<*>)  {
+    private fun <T> Observable<T>.recomputeOnChange(vararg observables: Observable<*>, recomputeAction: () -> T?) {
         for (observable in observables) {
             observable.subscribe {
-                this.value = transformImage(imageObservable.value)
+                value = recomputeAction()
             }
         }
     }
 
-    fun transformImage(image: BufferedImage?): BufferedImage? {
+    private fun recomputeGist(img: BufferedImage): Gist? {
+        val values = DoubleArray(img.width * img.height)
+        val gistType = gistTypeObservable.value ?: return null
+        var counter = 0
+        for (y in 0 until img.height) {
+            for (x in 0 until img.width) {
+                val lab = Color(img.getRGB(x, y)).toLab()
+                val value = when (gistType) {
+                    L -> lab.l
+                    A -> lab.a
+                    B -> lab.b
+                }
+                values[counter] = value
+                counter++
+            }
+        }
+        return Gist(values)
+    }
+
+    private fun transformImage(image: BufferedImage?): BufferedImage? {
         image ?: return null
         val height = image.height
         val width = image.width
