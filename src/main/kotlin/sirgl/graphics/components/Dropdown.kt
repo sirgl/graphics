@@ -12,12 +12,12 @@ class Dropdown(values: List<String>, name: String) : JPanel() {
     val label = JLabel(name)
 
     init {
-        vBox {
+        add(hBox {
             add(label)
             dropdown.addActionListener {
                 observable.value = dropdown.selectedItem as String
             }
             add(dropdown)
-        }
+        })
     }
 }

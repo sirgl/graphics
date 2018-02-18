@@ -10,12 +10,6 @@ import sirgl.graphics.observable.map
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-enum class SaveType {
-    RGB,
-    HSV,
-    LAB
-}
-
 object RefreshAllEvent
 
 @Suppress("RemoveExplicitTypeArguments")
@@ -29,7 +23,7 @@ class App {
 
     val isSelectionMode: Observable<Boolean> = SimpleObservable(false)
 
-    val saveTypeObservable: Observable<SaveType> = SimpleObservable(SaveType.RGB)
+    val saveTypeObservable: Observable<FormatType> = SimpleObservable(FormatType.RGB)
 
     val repaintAllObservable: Observable<RefreshAllEvent> = SimpleObservable<RefreshAllEvent>(null)
     fun repaintAll() {

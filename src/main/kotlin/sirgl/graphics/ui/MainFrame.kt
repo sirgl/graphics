@@ -30,8 +30,7 @@ class MainFrame(val app: App) : JFrame() {
 
     private fun openFile() {
         val fileChooser = JFileChooser()
-        val returnValue = fileChooser.showOpenDialog(this)
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             val file = fileChooser.selectedFile
             val image = ImageIO.read(file)
             app.imageObservable.value = image

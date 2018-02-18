@@ -8,7 +8,7 @@ interface Observable<T> {
 typealias Listener<T> = (T?) -> Unit
 
 class SimpleObservable<T>(v: T?) : Observable<T> {
-    constructor(another: Observable<T>, mapOp: ((T?) -> T?)? = null) : this(another.value) {
+    constructor(another: Observable<T>, mapOp: ((T?) -> T?)? = { it }) : this(another.value) {
         mapOp ?: return
         another.subscribe {
             value = mapOp(it)

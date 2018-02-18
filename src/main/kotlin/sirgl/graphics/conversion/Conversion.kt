@@ -40,16 +40,9 @@ fun Color.toHsv(): HSV {
         max == b -> 60 * (r - g) / (max - min).toDouble() + 240
         else -> throw IllegalStateException()
     }
-
-    if (h.isNaN()) {
-        h = 360.0
-    }
-
+    if (h.isNaN()) h = 360.0
     var s = 1 - min / max.toDouble()
-
-    if (s.isNaN()) {
-        s = 1.0
-    }
+    if (s.isNaN()) s = 1.0
     val v = max.toDouble() / 255.0
 
     return HSV(h / 360.0, s, v)
