@@ -8,6 +8,9 @@ import sirgl.graphics.gist.Gist
 import sirgl.graphics.observable.*
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.io.StringWriter
+import kotlin.math.max
+import kotlin.math.min
 
 object RefreshAllEvent
 
@@ -22,8 +25,6 @@ class App {
     val sSliderPosition: Observable<Int> = SimpleObservable(50)
     val vSliderPosition: Observable<Int> = SimpleObservable(50)
 
-//    val isSelectionMode: Observable<Boolean> = SimpleObservable(false)
-
     val saveTypeObservable: Observable<FormatType> = SimpleObservable(FormatType.RGB)
 
     val repaintAllObservable: Observable<RefreshAllEvent> = SimpleObservable<RefreshAllEvent>(null)
@@ -36,6 +37,23 @@ class App {
 
     val currentPositionObservable: Observable<Point> = SimpleObservable<Point>(null)
     val mouseDraggedObservable: Observable<MouseDraggedEvt> = SimpleObservable<MouseDraggedEvt>(null)
+
+    val selectedRegionText: Observable<String> = mouseDraggedObservable.filter {
+        it ?: return@filter false
+        val img = imageToDrawObservable.value ?: return@filter false
+        return@filter it.newPoint.isInside(img) && it.oldPoint.isInside(img)
+    }.map {
+                it ?: return@map null
+                val minX = min(it.newPoint.x, it.oldPoint.x)
+                val maxX = max(it.newPoint.x, it.oldPoint.x)
+                val minY = min(it.newPoint.y, it.oldPoint.y)
+                val maxY = max(it.newPoint.y, it.oldPoint.y)
+                val writer = StringWriter()
+                val img = imageToDrawObservable.value ?: return@map null
+                val saveType = saveTypeObservable.value ?: return@map null
+                img.write(saveType, writer, minX, minY, maxX, maxY)
+                return@map writer.toString()
+            }
 
     val currentRGB: Observable<Color> = SimpleObservable(currentPositionObservable).map {
         it ?: return@map null

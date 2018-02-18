@@ -48,6 +48,16 @@ fun <T1, T2> Observable<T1>.map(transform: (T1?) -> T2?): Observable<T2> {
     return observable
 }
 
+fun <T> Observable<T>.filter(filterOp: (T?) -> Boolean): Observable<T> {
+    val observable = SimpleObservable(value)
+    subscribe {
+        if (filterOp(it)) {
+            observable.value = it
+        }
+    }
+    return observable
+}
+
 fun <T1> Observable<T1>.printValue() = map { println(it);it}
 
 class NamedObservable<T>(observable: Observable<T>, val name: String) : Observable<T> by observable

@@ -15,7 +15,7 @@ class MainFrame(val app: App) : JFrame() {
 
         minimumSize = Dimension(800, 600)
 
-        defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+        defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
     }
 
     private fun createMenu() {

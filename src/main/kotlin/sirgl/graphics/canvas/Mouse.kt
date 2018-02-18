@@ -4,9 +4,12 @@ import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.image.BufferedImage
 
 
-class Point(val x: Int, val y: Int)
+class Point(val x: Int, val y: Int) {
+    fun isInside(img: BufferedImage) = x >= 0 && y >= 0 && img.width > x && img.height > y
+}
 
 class MouseDraggedEvt(val oldPoint: Point, val newPoint: Point)
 
