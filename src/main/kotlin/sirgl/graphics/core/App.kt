@@ -4,9 +4,7 @@ import sirgl.graphics.canvas.MouseDraggedEvt
 import sirgl.graphics.canvas.Point
 import sirgl.graphics.conversion.*
 import sirgl.graphics.gist.Gist
-import sirgl.graphics.observable.Observable
-import sirgl.graphics.observable.SimpleObservable
-import sirgl.graphics.observable.map
+import sirgl.graphics.observable.*
 import java.awt.Color
 import java.awt.image.BufferedImage
 
@@ -21,7 +19,7 @@ class App {
     val sSliderPosition: Observable<Int> = SimpleObservable(50)
     val vSliderPosition: Observable<Int> = SimpleObservable(50)
 
-    val isSelectionMode: Observable<Boolean> = SimpleObservable(false)
+//    val isSelectionMode: Observable<Boolean> = SimpleObservable(false)
 
     val saveTypeObservable: Observable<FormatType> = SimpleObservable(FormatType.RGB)
 
@@ -44,6 +42,17 @@ class App {
     val currentHSV: Observable<HSV> = SimpleObservable(currentRGB).map { (it ?: return@map null).toHsv() }
     val currentLAB: Observable<LAB> = SimpleObservable(currentRGB).map { (it ?: return@map null).toLab() }
 
+    fun init() {
+        imageToDrawObservable.recomputeOnChange(hSliderPosition, sSliderPosition, vSliderPosition)
+    }
+
+    private fun Observable<BufferedImage>.recomputeOnChange(vararg observables: Observable<*>)  {
+        for (observable in observables) {
+            observable.subscribe {
+                this.value = transformImage(imageObservable.value)
+            }
+        }
+    }
 
     fun transformImage(image: BufferedImage?): BufferedImage? {
         image ?: return null

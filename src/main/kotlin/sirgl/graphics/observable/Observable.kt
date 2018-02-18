@@ -47,3 +47,9 @@ fun <T1, T2> Observable<T1>.map(transform: (T1?) -> T2?): Observable<T2> {
     }
     return observable
 }
+
+fun <T1> Observable<T1>.printValue() = map { println(it);it}
+
+class NamedObservable<T>(observable: Observable<T>, val name: String) : Observable<T> by observable
+
+fun <T> Observable<T>.named(name: String) = NamedObservable(this, name)

@@ -4,6 +4,7 @@ import sirgl.graphics.components.*
 import sirgl.graphics.conversion.FormatType
 import sirgl.graphics.conversion.write
 import sirgl.graphics.core.App
+import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.map
 import sirgl.graphics.observable.transmitTo
 import java.io.BufferedWriter
@@ -51,11 +52,25 @@ class SettingsPanel(private val app: App) : JPanel() {
             add(doubleLabel("a", app.currentLAB.map { it?.a }))
             add(doubleLabel("b", app.currentLAB.map { it?.b }))
         }
-        addSavePanel(app)
-
+        addSavePanel()
+        addHSVSliders()
     }
 
-    private fun addSavePanel(app: App) {
+    private fun addHSVSliders() {
+        addVBox {
+            addSlider(app.hSliderPosition)
+            addSlider(app.sSliderPosition)
+            addSlider(app.vSliderPosition)
+        }
+    }
+
+    private fun addSlider(destObservable: Observable<Int>) {
+        val slider = ObservableSlider()
+        slider.observable.transmitTo(destObservable)
+        add(slider)
+    }
+
+    private fun addSavePanel() {
         addHBox {
             add(formatTypesDropdown)
             formatTypesDropdown.observable.map {
