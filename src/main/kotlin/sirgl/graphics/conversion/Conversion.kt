@@ -2,18 +2,18 @@ package sirgl.graphics.conversion
 
 import java.awt.Color
 
-const val xn = 0.31382
-const val yn = 0.331
-const val zn = 0.35518
+const val xn = 0.9504
+const val yn = 1.0000
+const val zn = 1.0888
 
 fun Color.toLab() : LAB {
     val r = red
     val g = green
     val b = blue
 
-    val x = r * 0.5767309 + g * 0.1855540 + b * 0.1881852
-    val y = r * 0.2973769 + g * 0.6273491 + b * 0.0752741
-    val z = r * 0.270343 + g * 0.0706872 + b * 0.9911085
+    val x = (r * 0.5767309 + g * 0.1855540 + b * 0.1881852) / 255.0
+    val y = (r * 0.2973769 + g * 0.6273491 + b * 0.0752741) / 255.0
+    val z = (r * 0.0270343 + g * 0.0706872 + b * 0.9911085) / 255.0
 
     val lV = 116 * f(y / yn) - 16
     val aV = 500 * (f(x / xn) - f(y / yn))

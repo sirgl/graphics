@@ -18,8 +18,8 @@ class MainPanel(app: App) : JPanel() {
         minimumSize = Dimension(800, 600)
 
         val scrolledCanvas = ScrolledCanvas(app, Canvas(app))
-        val settingsPanelWrapper = SettingsPanel(app)
-        add(SplitPanel(scrolledCanvas, settingsPanelWrapper, 2.5, 0.5) {
+        val settingsPanel = SettingsPanel(app)
+        add(SplitPanel(scrolledCanvas, settingsPanel, 2.5, 0.5) {
             rightConstraint.fill = GridBagConstraints.NONE
         })
 

@@ -58,7 +58,7 @@ fun <T> Observable<T>.filter(filterOp: (T?) -> Boolean): Observable<T> {
     return observable
 }
 
-fun <T1> Observable<T1>.printValue() = map { println(it);it}
+fun <T1> Observable<T1>.printValue() = map { println(it);it }
 
 class NamedObservable<T>(observable: Observable<T>, val name: String) : Observable<T> by observable
 
