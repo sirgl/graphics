@@ -14,14 +14,14 @@ class Canvas(app: App) : JPanel() {
     private val mouseObserver = MouseObserver()
 
     init {
-        isVisible = false
+//        isVisible = false
         addMouseListener(mouseObserver)
         addMouseMotionListener(mouseObserver)
         mouseObserver.mouseDraggedObservable.transmitTo(app.mouseDraggedObservable)
         mouseObserver.currentPositionObservable.transmitTo(app.currentPositionObservable)
         app.imageToDrawObservable.subscribe {
             it ?: return@subscribe
-            isVisible = true
+//            isVisible = true
             println("Image updated")
             preferredSize = Dimension(it.width, it.height)
             size = Dimension(it.width, it.height)

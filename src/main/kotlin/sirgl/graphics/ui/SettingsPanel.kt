@@ -7,6 +7,7 @@ import sirgl.graphics.core.App
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.map
 import sirgl.graphics.observable.transmitTo
+import java.awt.Component
 import java.awt.Dimension
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
@@ -20,20 +21,24 @@ class SettingsPanel(private val app: App) : JPanel() {
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         val label = JLabel()
-        size = Dimension(200, 700)
+        preferredSize = Dimension(200, 700)
+        maximumSize = Dimension(200, 700)
         add(label)
         app.currentPositionObservable.subscribe {
             it ?: return@subscribe
             label.text = "x = ${it.x}, y = ${it.y}"
         }
+        add(JButton("Just to test"))
 
         addVBox {
+            preferredSize = Dimension(200, 50)
             add(JLabel("RGB"))
             add(ObservableLabel("r", app.currentRGB.map { it?.red }))
             add(ObservableLabel("g", app.currentRGB.map { it?.green }))
             add(ObservableLabel("b", app.currentRGB.map { it?.blue }))
         }
         addVBox {
+            Dimension(200, 50)
             add(JLabel("HSV"))
             add(doubleLabel("h", app.currentHSV.map {
                 it ?:  return@map null
@@ -49,6 +54,7 @@ class SettingsPanel(private val app: App) : JPanel() {
             }))
         }
         addVBox {
+            Dimension(200, 50)
             add(JLabel("LAB"))
             add(doubleLabel("l", app.currentLAB.map { it?.l }))
             add(doubleLabel("a", app.currentLAB.map { it?.a }))
@@ -60,6 +66,7 @@ class SettingsPanel(private val app: App) : JPanel() {
 
     private fun addHSVSliders() {
         addVBox {
+            Dimension(200, 50)
             addSlider(app.hSliderPosition)
             addSlider(app.sSliderPosition)
             addSlider(app.vSliderPosition)
@@ -74,6 +81,7 @@ class SettingsPanel(private val app: App) : JPanel() {
 
     private fun addSavePanel() {
         addHBox {
+            Dimension(200, 50)
             add(formatTypesDropdown)
             formatTypesDropdown.observable.map {
                 it ?: return@map null

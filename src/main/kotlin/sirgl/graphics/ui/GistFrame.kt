@@ -14,7 +14,7 @@ import javax.swing.WindowConstants
 class GistFrame(app: App) : JFrame() {
     init {
         size = Dimension(250, 350)
-        minimumSize = Dimension(250, 350)
+        preferredSize = Dimension(250, 350)
         add(vBox {
             val dropdown = Dropdown(GistType.values().map { it.name }, "Gist type")
             dropdown.observable.map {

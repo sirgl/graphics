@@ -6,10 +6,10 @@ import javax.swing.JScrollPane
 
 class ScrolledCanvas(app: App, canvas: Canvas) : JScrollPane(canvas) {
     init {
-        isVisible = false
+//        isVisible = false
         app.imageObservable.subscribe {
             it ?: return@subscribe
-            isVisible = true
+//            isVisible = true
             preferredSize = Dimension(it.width, it.height)
         }
     }

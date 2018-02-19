@@ -1,26 +1,35 @@
 package sirgl.graphics.components
 
 import java.awt.GridBagConstraints
-import java.awt.GridBagConstraints.BOTH
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class SplitPanel(left: JComponent, right: JComponent, leftWeight: Double, rightWeight: Double) : JPanel() {
+class SplitPanel(
+        left: JComponent,
+        right: JComponent,
+        leftWeight: Double,
+        rightWeight: Double,
+        init: SplitPanel.() -> Unit = {}
+) : JPanel() {
+    val leftConstraint = GridBagConstraints()
+    val rightConstraint = GridBagConstraints()
+
     init {
         layout = GridBagLayout()
-        val constraints = GridBagConstraints()
-        constraints.weightx = leftWeight
-        constraints.weighty = 1.0
-        constraints.gridx = 0
-        constraints.gridy = 0
-        constraints.fill = BOTH
-        add(left, constraints)
-        constraints.weightx = rightWeight
-        constraints.weighty = 1.0
-        constraints.gridx = 1
-        constraints.gridy = 0
-        constraints.fill = BOTH
-        add(right, constraints)
+        leftConstraint.weightx = leftWeight
+        leftConstraint.weighty = 1.0
+        leftConstraint.gridx = 0
+        leftConstraint.gridy = 0
+        leftConstraint.fill = GridBagConstraints.BOTH
+
+        rightConstraint.weightx = rightWeight
+        rightConstraint.weighty = 1.0
+        rightConstraint.gridx = 1
+        rightConstraint.gridy = 0
+        rightConstraint.fill = GridBagConstraints.BOTH
+        init()
+        add(left, leftConstraint)
+        add(right, rightConstraint)
     }
 }

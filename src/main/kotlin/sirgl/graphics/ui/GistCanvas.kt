@@ -15,8 +15,7 @@ class GistCanvas(gistObservable: Observable<Gist>) : JPanel() {
     private val panelHeight = 200
 
     init {
-        size = Dimension(200, panelHeight)
-        minimumSize = Dimension(200, panelHeight)
+        preferredSize = Dimension(200, 200)
         gistObservable.subscribe {
             it ?: return@subscribe
             gist = it

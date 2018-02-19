@@ -58,6 +58,7 @@ class App {
     val currentRGB: Observable<Color> = SimpleObservable(currentPositionObservable).map {
         it ?: return@map null
         val image = imageToDrawObservable.value ?: return@map null
+        if (!it.isInside(image)) return@map null
         return@map Color(image.getRGB(it.x, it.y))
     }
 

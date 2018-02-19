@@ -5,6 +5,7 @@ import sirgl.graphics.canvas.ScrolledCanvas
 import sirgl.graphics.components.SplitPanel
 import sirgl.graphics.core.App
 import java.awt.Dimension
+import java.awt.GridBagConstraints
 import javax.swing.*
 
 class MainPanel(app: App) : JPanel() {
@@ -17,8 +18,10 @@ class MainPanel(app: App) : JPanel() {
         minimumSize = Dimension(800, 600)
 
         val scrolledCanvas = ScrolledCanvas(app, Canvas(app))
-        val settingsPanel = SettingsPanel(app)
-        add(SplitPanel(scrolledCanvas, settingsPanel, 1.5, 0.5))
+        val settingsPanelWrapper = SettingsPanel(app)
+        add(SplitPanel(scrolledCanvas, settingsPanelWrapper, 2.5, 0.5) {
+            rightConstraint.fill = GridBagConstraints.NONE
+        })
 
         app.selectedRegionText.subscribe {
             it ?: return@subscribe
