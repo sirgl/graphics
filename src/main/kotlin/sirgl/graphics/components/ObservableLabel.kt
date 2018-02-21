@@ -12,6 +12,6 @@ class ObservableLabel<T>(name: String, observable: Observable<T>, toString: (T) 
     }
 }
 
-fun doubleLabel(name: String, observable: Observable<Double>): ObservableLabel<Double> {
+fun floatLabel(name: String, observable: Observable<Float>): ObservableLabel<Float> {
     return ObservableLabel(name, observable) { String.format("%.2f", it) }
 }

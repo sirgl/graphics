@@ -8,7 +8,7 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import javax.swing.*
 
-class MainPanel(app: App) : JPanel() {
+class MainPanel(val app: App) : JPanel() {
     init {
         layout = BoxLayout(this, BoxLayout.X_AXIS)
         app.repaintAllObservable.subscribe {
@@ -18,7 +18,7 @@ class MainPanel(app: App) : JPanel() {
         minimumSize = Dimension(800, 600)
 
         val scrolledCanvas = ScrolledCanvas(app, Canvas(app))
-        val settingsPanel = SettingsPanel(app)
+        val settingsPanel = createSettingsPanel()
         add(SplitPanel(scrolledCanvas, settingsPanel, 2.5, 0.5) {
             rightConstraint.fill = GridBagConstraints.NONE
         })
@@ -32,5 +32,12 @@ class MainPanel(app: App) : JPanel() {
             frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
             frame.isVisible = true
         }
+    }
+
+    fun createSettingsPanel(): JComponent {
+        val pane = JTabbedPane()
+        pane.addTab("General", GeneralSettingsPanel(app))
+        pane.addTab("Filters", FilterPanel(app))
+        return pane
     }
 }

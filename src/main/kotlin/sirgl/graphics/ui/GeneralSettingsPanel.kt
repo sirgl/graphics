@@ -15,7 +15,7 @@ import java.io.OutputStreamWriter
 import javax.swing.*
 import kotlin.concurrent.thread
 
-class SettingsPanel(private val app: App) : JPanel() {
+class GeneralSettingsPanel(private val app: App) : JPanel() {
     private val formatTypesDropdown = Dropdown(FormatType.values().map { it.name }, "Format type")
     private val saveButton = JButton("Save")
 
@@ -49,26 +49,26 @@ class SettingsPanel(private val app: App) : JPanel() {
         add(vBox {
             Dimension(200, 50)
             add(JLabel("HSV"))
-            add(doubleLabel("h", app.currentHSV.map {
+            add(floatLabel("h", app.currentHSV.map {
                 it ?:  return@map null
-                return@map it.h * 360.0
+                return@map it.h * 360.0f
             }))
-            add(doubleLabel("s", app.currentHSV.map {
+            add(floatLabel("s", app.currentHSV.map {
                 it ?:  return@map null
-                return@map it.s * 100.0
+                return@map it.s * 100.0f
             }))
-            add(doubleLabel("v", app.currentHSV.map {
+            add(floatLabel("v", app.currentHSV.map {
                 it ?:  return@map null
-                return@map it.v * 100.0
+                return@map it.v * 100.0f
             }))
         }, c)
         c.gridy = 3
         add(vBox {
             Dimension(200, 50)
             add(JLabel("LAB"))
-            add(doubleLabel("l", app.currentLAB.map { it?.l }))
-            add(doubleLabel("a", app.currentLAB.map { it?.a }))
-            add(doubleLabel("b", app.currentLAB.map { it?.b }))
+            add(floatLabel("l", app.currentLAB.map { it?.l }))
+            add(floatLabel("a", app.currentLAB.map { it?.a }))
+            add(floatLabel("b", app.currentLAB.map { it?.b }))
         }, c)
         c.gridy = 4
         add(hBox {
@@ -84,19 +84,10 @@ class SettingsPanel(private val app: App) : JPanel() {
             }
         }, c)
         c.gridy = 5
-        add(vBox {
-            Dimension(200, 50)
-            addSlider(app.hSliderPosition)
-            addSlider(app.sSliderPosition)
-            addSlider(app.vSliderPosition)
-        }, c)
+
     }
 
-    private fun JPanel.addSlider(destObservable: Observable<Int>) {
-        val slider = ObservableSlider()
-        slider.observable.transmitTo(destObservable)
-        add(slider)
-    }
+
 
     private fun saveToFile() {
         val fileChooser = JFileChooser()

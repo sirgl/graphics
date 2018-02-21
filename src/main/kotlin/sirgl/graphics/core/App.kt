@@ -4,6 +4,7 @@ import sirgl.graphics.canvas.MouseDraggedEvt
 import sirgl.graphics.canvas.Point
 import sirgl.graphics.conversion.*
 import sirgl.graphics.core.GistType.*
+import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.gist.Gist
 import sirgl.graphics.observable.*
 import java.awt.Color
@@ -18,8 +19,25 @@ enum class GistType { L, A, B }
 
 @Suppress("RemoveExplicitTypeArguments")
 class App {
+    var internalImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
+
+    val filtersObservable: Observable<MutableList<ImageFilter>> = SimpleObservable(mutableListOf())
+    private val filterPipeline = FilterPipeline(filtersObservable)
     val imageObservable: Observable<BufferedImage> = SimpleObservable<BufferedImage>(null)
     val imageToDrawObservable: Observable<BufferedImage> = SimpleObservable(imageObservable, this::transformImage)
+
+    private fun transformImage(src: BufferedImage?) : BufferedImage? {
+        src ?: return null
+        val width = src.width
+        val height = src.height
+        val resultImg = if (width != internalImage.width || height != internalImage.width) {
+            BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+        } else {
+            internalImage
+        }
+        filterPipeline.transform(src, resultImg)
+        return src
+    }
 
     val hSliderPosition: Observable<Int> = SimpleObservable(50)
     val sSliderPosition: Observable<Int> = SimpleObservable(50)
@@ -89,7 +107,7 @@ class App {
     }
 
     private fun recomputeGist(img: BufferedImage): Gist? {
-        val values = DoubleArray(img.width * img.height)
+        val values = FloatArray(img.width * img.height)
         val gistType = gistTypeObservable.value ?: return null
         var counter = 0
         for (y in 0 until img.height) {
@@ -107,36 +125,30 @@ class App {
         return Gist(values)
     }
 
-    private fun transformImage(image: BufferedImage?): BufferedImage? {
-        image ?: return null
-        val height = image.height
-        val width = image.width
-        val transformed = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-        val hSliderPos = hSliderPosition.value ?: return null
-        val sSliderPos = sSliderPosition.value ?: return null
-        val vSliderPos = vSliderPosition.value ?: return null
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val original = Color(image.getRGB(x, y))
-                val hsv = original.toHsv()
-                val transformedHsv = hsv.transformHSV(hSliderPos, sSliderPos, vSliderPos)
-                val transformedRgb = transformedHsv.toRgb()
-                transformed.setRGB(x, y, transformedRgb.rgb)
-            }
-        }
-        return transformed
-    }
+// Parallelize:
 
-    private fun HSV.transformHSV(hSliderPos: Int, sSliderPos: Int, vSliderPos: Int) = HSV(
-            transformValue(h, hSliderPos),
-            transformValue(s, sSliderPos),
-            transformValue(v, vSliderPos)
-    )
+//    class Strip(
+//            val src: BufferedImage,
+//            val startY: Int,
+//            val endY: Int
+//    ) {
+//        fun transform() {
+//
+//        }
+//    }
+//
+//    fun BufferedImage.split(count: Int): List<Strip> {
+//        val stripSize = height / count
+//        val strips = mutableListOf<Strip>()
+//        var startY = 0
+//        for (i in (0..(count - 2))) {
+//            val endY = startY + stripSize
+//            strips.add(Strip(this, startY, endY))
+//            startY = endY + 1
+//        }
+//        strips.add(Strip(this, startY, height - 1))
+//        return strips
+//    }
 
-    private fun transformValue(v: Double, sliderVal: Int): Double {
-        return when {
-            sliderVal < 50 -> (sliderVal.toDouble() / 50) * v
-            else -> (sliderVal.toDouble() / 50 - 1.0) * (1.0 - v) + v
-        }
-    }
+
 }

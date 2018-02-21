@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package sirgl.graphics.conversion
 
 import sirgl.graphics.conversion.FormatType.*
@@ -6,21 +8,33 @@ import java.awt.image.BufferedImage
 import java.io.Writer
 
 class HSV (
-        val h: Double,
-        val s: Double,
-        val v: Double
+        val h: Float,
+        val s: Float,
+        val v: Float
 )
 
 class LAB (
-        val l: Double,
-        val a: Double,
-        val b: Double
+        val l: Float,
+        val a: Float,
+        val b: Float
 )
 
 enum class FormatType {
     RGB,
     HSV,
     LAB
+}
+
+inline fun getRed(rgb: Int): Int {
+    return rgb shr 16 and 0xFF
+}
+
+inline fun getGreen(rgb: Int): Int {
+    return rgb shr 8 and 0xFF
+}
+
+inline fun getBlue(rgb: Int): Int {
+    return rgb shr 0 and 0xFF
 }
 
 fun BufferedImage.write(
