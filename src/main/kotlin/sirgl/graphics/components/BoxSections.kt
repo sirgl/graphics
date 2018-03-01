@@ -16,11 +16,12 @@ class BoxSections {
 
 class BoxSection {
     val constraint = GridBagConstraints()
+
     init {
     }
-    
+
     fun setPosition() {
-        
+
     }
 }
 

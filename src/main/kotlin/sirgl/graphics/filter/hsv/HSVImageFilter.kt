@@ -10,8 +10,8 @@ class HSVImageFilter(
         private val hSliderPos: Observable<Int>,
         private val sSliderPos: Observable<Int>,
         private val vSliderPos: Observable<Int>
-        ) : SinglePixelTransformingFilter() {
-    override fun transformPixel(rgb: Int) : Int {
+) : SinglePixelTransformingFilter() {
+    override fun transformPixel(rgb: Int): Int {
         val hValue = hSliderPos.value ?: return rgb
         val sValue = sSliderPos.value ?: return rgb
         val vValue = vSliderPos.value ?: return rgb

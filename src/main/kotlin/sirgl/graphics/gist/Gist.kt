@@ -2,6 +2,7 @@ package sirgl.graphics.gist
 
 
 const val stepsCount = 40
+
 class Gist(values: FloatArray) {
     val max = values.max() ?: throw IllegalStateException()
     val min = values.min() ?: throw IllegalStateException()
@@ -9,7 +10,7 @@ class Gist(values: FloatArray) {
 
     val step = diff / stepsCount
 
-    val buckets =  IntArray(stepsCount)
+    val buckets = IntArray(stepsCount)
 
     init {
         for (value in values) {

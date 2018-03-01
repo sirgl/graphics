@@ -1,7 +1,6 @@
 package sirgl.graphics.canvas
 
 import sirgl.graphics.core.App
-import sirgl.graphics.core.RefreshAllEvent
 import sirgl.graphics.observable.transmitTo
 import java.awt.Dimension
 import java.awt.Graphics

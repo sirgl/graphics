@@ -4,7 +4,6 @@ import sirgl.graphics.components.*
 import sirgl.graphics.conversion.FormatType
 import sirgl.graphics.conversion.write
 import sirgl.graphics.core.App
-import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.map
 import sirgl.graphics.observable.transmitTo
 import java.awt.Dimension
@@ -12,7 +11,10 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
-import javax.swing.*
+import javax.swing.JButton
+import javax.swing.JFileChooser
+import javax.swing.JLabel
+import javax.swing.JPanel
 import kotlin.concurrent.thread
 
 class GeneralSettingsPanel(private val app: App) : JPanel() {
@@ -50,15 +52,15 @@ class GeneralSettingsPanel(private val app: App) : JPanel() {
             Dimension(200, 50)
             add(JLabel("HSV"))
             add(floatLabel("h", app.currentHSV.map {
-                it ?:  return@map null
+                it ?: return@map null
                 return@map it.h * 360.0f
             }))
             add(floatLabel("s", app.currentHSV.map {
-                it ?:  return@map null
+                it ?: return@map null
                 return@map it.s * 100.0f
             }))
             add(floatLabel("v", app.currentHSV.map {
-                it ?:  return@map null
+                it ?: return@map null
                 return@map it.v * 100.0f
             }))
         }, c)
@@ -86,7 +88,6 @@ class GeneralSettingsPanel(private val app: App) : JPanel() {
         c.gridy = 5
 
     }
-
 
 
     private fun saveToFile() {

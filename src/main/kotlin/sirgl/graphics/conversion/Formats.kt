@@ -3,17 +3,19 @@
 package sirgl.graphics.conversion
 
 import sirgl.graphics.conversion.FormatType.*
+import sirgl.graphics.conversion.FormatType.HSV
+import sirgl.graphics.conversion.FormatType.LAB
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.Writer
 
-class HSV (
+class HSV(
         val h: Float,
         val s: Float,
         val v: Float
 )
 
-class LAB (
+class LAB(
         val l: Float,
         val a: Float,
         val b: Float
@@ -61,13 +63,13 @@ fun BufferedImage.write(
     for (y in (y1..y2)) {
         writer.write("[")
         for (x in (x1..x2)) {
-             writer.write(toStringMapper(Color(getRGB(x, y))))
+            writer.write(toStringMapper(Color(getRGB(x, y))))
         }
         writer.write("]")
     }
 }
 
-fun printRGB(color: Color)  = "(${color.red}, ${color.green}, ${color.red})"
-fun printHSV(color: Color)  = color.toHsv().run { "($h, $s, $v)"}
-fun printLAB(color: Color)  = color.toLab().run { "($l, $a, $b)"}
+fun printRGB(color: Color) = "(${color.red}, ${color.green}, ${color.red})"
+fun printHSV(color: Color) = color.toHsv().run { "($h, $s, $v)" }
+fun printLAB(color: Color) = color.toLab().run { "($l, $a, $b)" }
 

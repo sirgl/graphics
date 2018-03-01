@@ -27,17 +27,20 @@ class MainPanel(val app: App) : JPanel() {
             it ?: return@subscribe
             val frame = JFrame()
             frame.size = Dimension(200, 50)
-            val area = JTextArea(it,1, 30)
+            val area = JTextArea(it, 1, 30)
             frame.add(area)
             frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
             frame.isVisible = true
         }
     }
 
-    fun createSettingsPanel(): JComponent {
+    private fun createSettingsPanel(): JComponent {
         val pane = JTabbedPane()
+        pane.preferredSize = Dimension(250, 550)
         pane.addTab("General", GeneralSettingsPanel(app))
-        pane.addTab("Filters", FilterPanel(app))
+        val scrollPane = JScrollPane(FilterPanel(app))
+        scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        pane.addTab("Filters", scrollPane)
         return pane
     }
 }

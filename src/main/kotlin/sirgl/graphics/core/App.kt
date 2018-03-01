@@ -4,12 +4,16 @@ import sirgl.graphics.canvas.MouseDraggedEvt
 import sirgl.graphics.canvas.Point
 import sirgl.graphics.conversion.*
 import sirgl.graphics.core.GistType.*
-import sirgl.graphics.filter.ImageFilter
+import sirgl.graphics.filter.FilterModel
 import sirgl.graphics.gist.Gist
-import sirgl.graphics.observable.*
+import sirgl.graphics.observable.Observable
+import sirgl.graphics.observable.SimpleObservable
+import sirgl.graphics.observable.filter
+import sirgl.graphics.observable.map
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.StringWriter
+import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,16 +21,32 @@ object RefreshAllEvent
 
 enum class GistType { L, A, B }
 
+object RedrawRequestEvent
+
 @Suppress("RemoveExplicitTypeArguments")
 class App {
     var internalImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
 
-    val filtersObservable: Observable<MutableList<ImageFilter>> = SimpleObservable(mutableListOf())
+    val filtersObservable: Observable<MutableList<FilterModel>> = SimpleObservable(mutableListOf())
     private val filterPipeline = FilterPipeline(filtersObservable)
+    val selectedFilterPanel: Observable<JPanel> = SimpleObservable<JPanel>(null)
+
+
     val imageObservable: Observable<BufferedImage> = SimpleObservable<BufferedImage>(null)
     val imageToDrawObservable: Observable<BufferedImage> = SimpleObservable(imageObservable, this::transformImage)
+    val imageChangeObservable: Observable<RedrawRequestEvent> = SimpleObservable(RedrawRequestEvent)
 
-    private fun transformImage(src: BufferedImage?) : BufferedImage? {
+    fun addFilter(filterModel: FilterModel) {
+        val filters = filtersObservable.value ?: mutableListOf()
+        filters.add(filterModel)
+        filtersObservable.value = filters
+    }
+
+    fun clearFilters() {
+        filtersObservable.value = mutableListOf()
+    }
+
+    private fun transformImage(src: BufferedImage?): BufferedImage? {
         src ?: return null
         val width = src.width
         val height = src.height
@@ -36,12 +56,8 @@ class App {
             internalImage
         }
         filterPipeline.transform(src, resultImg)
-        return src
+        return resultImg
     }
-
-    val hSliderPosition: Observable<Int> = SimpleObservable(50)
-    val sSliderPosition: Observable<Int> = SimpleObservable(50)
-    val vSliderPosition: Observable<Int> = SimpleObservable(50)
 
     val saveTypeObservable: Observable<FormatType> = SimpleObservable(FormatType.RGB)
 
@@ -61,17 +77,17 @@ class App {
         val img = imageToDrawObservable.value ?: return@filter false
         return@filter it.newPoint.isInside(img) && it.oldPoint.isInside(img)
     }.map {
-                it ?: return@map null
-                val minX = min(it.newPoint.x, it.oldPoint.x)
-                val maxX = max(it.newPoint.x, it.oldPoint.x)
-                val minY = min(it.newPoint.y, it.oldPoint.y)
-                val maxY = max(it.newPoint.y, it.oldPoint.y)
-                val writer = StringWriter()
-                val img = imageToDrawObservable.value ?: return@map null
-                val saveType = saveTypeObservable.value ?: return@map null
-                img.write(saveType, writer, minX, minY, maxX, maxY)
-                return@map writer.toString()
-            }
+        it ?: return@map null
+        val minX = min(it.newPoint.x, it.oldPoint.x)
+        val maxX = max(it.newPoint.x, it.oldPoint.x)
+        val minY = min(it.newPoint.y, it.oldPoint.y)
+        val maxY = max(it.newPoint.y, it.oldPoint.y)
+        val writer = StringWriter()
+        val img = imageToDrawObservable.value ?: return@map null
+        val saveType = saveTypeObservable.value ?: return@map null
+        img.write(saveType, writer, minX, minY, maxX, maxY)
+        return@map writer.toString()
+    }
 
     val currentRGB: Observable<Color> = SimpleObservable(currentPositionObservable).map {
         it ?: return@map null
@@ -85,7 +101,7 @@ class App {
 
     fun init() {
         imageToDrawObservable.recomputeOnChange(
-                observables = *arrayOf(hSliderPosition, sSliderPosition, vSliderPosition),
+                observables = *arrayOf(filtersObservable, imageChangeObservable),
                 recomputeAction = { transformImage(imageObservable.value) }
         )
 
@@ -98,6 +114,10 @@ class App {
         )
     }
 
+    fun imageToDrawChanged() {
+        imageChangeObservable.value = RedrawRequestEvent
+    }
+
     private fun <T> Observable<T>.recomputeOnChange(vararg observables: Observable<*>, recomputeAction: () -> T?) {
         for (observable in observables) {
             observable.subscribe {
@@ -106,6 +126,7 @@ class App {
         }
     }
 
+    // TODO here actually not needed to create float array every time, consumer function is enough
     private fun recomputeGist(img: BufferedImage): Gist? {
         val values = FloatArray(img.width * img.height)
         val gistType = gistTypeObservable.value ?: return null

@@ -8,7 +8,7 @@ const val xn = 0.9504f
 const val yn = 1.0000f
 const val zn = 1.0888f
 
-fun Color.toLab() : LAB {
+fun Color.toLab(): LAB {
     val r = red
     val g = green
     val b = blue
@@ -50,7 +50,7 @@ fun Color.toHsv(): HSV {
     return HSV(h / 360.0f, s, v)
 }
 
-fun toHsv(rgb: Int) : HSV {
+fun toHsv(rgb: Int): HSV {
     val r = getRed(rgb)
     val g = getGreen(rgb)
     val b = getBlue(rgb)
@@ -108,7 +108,7 @@ fun HSV.toRgbI(): Int {
     }
 }
 
-private inline fun toRgbI(r: Float, g: Float, b: Float)  =  constructRgbI(
+private inline fun toRgbI(r: Float, g: Float, b: Float) = constructRgbI(
         Math.round(r * 256).truncate(),
         Math.round(g * 256).truncate(),
         Math.round(b * 256).truncate()
@@ -116,13 +116,13 @@ private inline fun toRgbI(r: Float, g: Float, b: Float)  =  constructRgbI(
 
 private inline fun constructRgbI(r: Int, g: Int, b: Int) =
         (r and 0xFF shl 16) or
-        (g and 0xFF shl 8) or
-        (b and 0xFF shl 0)
+                (g and 0xFF shl 8) or
+                (b and 0xFF shl 0)
 
-private fun toColor(r: Float, g: Float, b: Float) =  Color(
-    Math.round(r * 256).truncate(),
-    Math.round(g * 256).truncate(),
-    Math.round(b * 256).truncate()
+private fun toColor(r: Float, g: Float, b: Float) = Color(
+        Math.round(r * 256).truncate(),
+        Math.round(g * 256).truncate(),
+        Math.round(b * 256).truncate()
 )
 
 @Suppress("NOTHING_TO_INLINE")
