@@ -63,3 +63,7 @@ fun <T1> Observable<T1>.printValue() = map { println(it);it }
 class NamedObservable<T>(observable: Observable<T>, val name: String) : Observable<T> by observable
 
 fun <T> Observable<T>.named(name: String) = NamedObservable(this, name)
+
+fun <T> Observable<T>.refresh() {
+    value = value
+}

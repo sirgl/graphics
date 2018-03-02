@@ -10,9 +10,9 @@ import java.awt.image.BufferedImage
 import java.io.Writer
 
 class HSV(
-        val h: Float,
-        val s: Float,
-        val v: Float
+        var h: Float,
+        var s: Float,
+        var v: Float
 )
 
 class LAB(

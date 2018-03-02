@@ -8,12 +8,13 @@ import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BoxLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 
 class FilterPreviewsPanel(app: App) : JPanel() {
     init {
-        layout = CardLayout(10, 10)
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
         for (preview in filterModelFactories.map { FilterPreview(it, app) }) {
             add(preview)
         }

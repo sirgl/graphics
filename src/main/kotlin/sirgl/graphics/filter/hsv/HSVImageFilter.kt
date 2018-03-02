@@ -11,19 +11,23 @@ class HSVImageFilter(
         private val sSliderPos: Observable<Int>,
         private val vSliderPos: Observable<Int>
 ) : SinglePixelTransformingFilter() {
+    private val srcHsvBuffer = HSV(0f, 0f, 0f)
+    private val transformedHsvBuffer = HSV(0f, 0f, 0f)
+
     override fun transformPixel(rgb: Int): Int {
         val hValue = hSliderPos.value ?: return rgb
         val sValue = sSliderPos.value ?: return rgb
         val vValue = vSliderPos.value ?: return rgb
-        val hsv = toHsv(rgb).transformHSV(hValue, sValue, vValue)
-        return hsv.toRgbI()
+        toHsv(rgb, srcHsvBuffer)
+        transformHSV(hValue, sValue, vValue, srcHsvBuffer, transformedHsvBuffer)
+        return transformedHsvBuffer.toRgbI()
     }
 
-    private fun HSV.transformHSV(hSliderPos: Int, sSliderPos: Int, vSliderPos: Int) = HSV(
-            transformValue(h, hSliderPos),
-            transformValue(s, sSliderPos),
-            transformValue(v, vSliderPos)
-    )
+    private fun transformHSV(hSliderPos: Int, sSliderPos: Int, vSliderPos: Int, src: HSV, target: HSV) {
+        target.h = transformValue(src.h, hSliderPos)
+        target.s = transformValue(src.s, sSliderPos)
+        target.v = transformValue(src.v, vSliderPos)
+    }
 
     private fun transformValue(v: Float, sliderVal: Int) = when {
         sliderVal < 50 -> (sliderVal.toFloat() / 50) * v

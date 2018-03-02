@@ -3,6 +3,7 @@
 package sirgl.graphics.conversion
 
 import java.awt.Color
+import kotlin.math.roundToInt
 
 const val xn = 0.9504f
 const val yn = 1.0000f
@@ -50,7 +51,7 @@ fun Color.toHsv(): HSV {
     return HSV(h / 360.0f, s, v)
 }
 
-fun toHsv(rgb: Int): HSV {
+fun toHsv(rgb: Int, hsv: HSV) {
     val r = getRed(rgb)
     val g = getGreen(rgb)
     val b = getBlue(rgb)
@@ -69,26 +70,28 @@ fun toHsv(rgb: Int): HSV {
     if (s.isNaN()) s = 1.0f
     val v = max.toFloat() / 255.0f
 
-    return HSV(h / 360.0f, s, v)
+    hsv.h = h / 360.0f
+    hsv.s = s
+    hsv.v = v
 }
 
-fun HSV.toRgb(): Color {
-    val hI = (h * 6).toInt()
-    val f = h * 6 - hI
-    val p = v * (1 - s)
-    val q = v * (1 - f * s)
-    val t = v * (1 - (1 - f) * s)
-
-    return when (hI) {
-        0 -> toColor(v, t, p)
-        1 -> toColor(q, v, p)
-        2 -> toColor(p, v, t)
-        3 -> toColor(p, q, v)
-        4 -> toColor(t, p, v)
-        5, 6 -> toColor(v, p, q)
-        else -> throw RuntimeException("Bad conversion for $h, $s, $v")
-    }
-}
+//fun HSV.toRgb(): Color {
+//    val hI = (h * 6).toInt()
+//    val f = h * 6 - hI
+//    val p = v * (1 - s)
+//    val q = v * (1 - f * s)
+//    val t = v * (1 - (1 - f) * s)
+//
+//    return when (hI) {
+//        0 -> toColor(v, t, p)
+//        1 -> toColor(q, v, p)
+//        2 -> toColor(p, v, t)
+//        3 -> toColor(p, q, v)
+//        4 -> toColor(t, p, v)
+//        5, 6 -> toColor(v, p, q)
+//        else -> throw RuntimeException("Bad conversion for $h, $s, $v")
+//    }
+//}
 
 fun HSV.toRgbI(): Int {
     val hI = (h * 6).toInt()
@@ -109,21 +112,24 @@ fun HSV.toRgbI(): Int {
 }
 
 private inline fun toRgbI(r: Float, g: Float, b: Float) = constructRgbI(
-        Math.round(r * 256).truncate(),
-        Math.round(g * 256).truncate(),
-        Math.round(b * 256).truncate()
+        Math.round(r * 256).truncateRGB(),
+        Math.round(g * 256).truncateRGB(),
+        Math.round(b * 256).truncateRGB()
 )
 
-private inline fun constructRgbI(r: Int, g: Int, b: Int) =
+inline fun constructRgbI(r: Float, g: Float, b: Float) =
+        constructRgbI(r.roundToInt(), g.roundToInt(), b.roundToInt())
+
+inline fun constructRgbI(r: Int, g: Int, b: Int) =
         (r and 0xFF shl 16) or
                 (g and 0xFF shl 8) or
                 (b and 0xFF shl 0)
 
-private fun toColor(r: Float, g: Float, b: Float) = Color(
-        Math.round(r * 256).truncate(),
-        Math.round(g * 256).truncate(),
-        Math.round(b * 256).truncate()
-)
+//private fun toColor(r: Float, g: Float, b: Float) = Color(
+//        Math.round(r * 256).truncate(),
+//        Math.round(g * 256).truncate(),
+//        Math.round(b * 256).truncate()
+//)
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun Int.truncate() = if (this >= 256) 255 else this
+fun Int.truncateRGB() = if (this >= 256) 255 else this

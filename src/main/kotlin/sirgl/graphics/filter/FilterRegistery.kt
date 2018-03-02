@@ -1,7 +1,11 @@
 package sirgl.graphics.filter
 
+import sirgl.graphics.filter.grayscale.GrayscaleFilterModelFactory
 import sirgl.graphics.filter.hsv.HSVFilterModelFactory
+import sirgl.graphics.filter.sobel.SobelFilterModelFactory
 
 val filterModelFactories = listOf<FilterModelFactory<*>>(
-        HSVFilterModelFactory()
+        HSVFilterModelFactory(),
+        SobelFilterModelFactory(),
+        GrayscaleFilterModelFactory()
 )
