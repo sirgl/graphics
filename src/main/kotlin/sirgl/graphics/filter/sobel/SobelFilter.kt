@@ -17,13 +17,13 @@ import kotlin.math.absoluteValue
 class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelData(3, 8f))) {
     override fun transformRGB(x: Int, y: Int, img: BufferedImage, rgb: RGB) {
         rgb.r = transformChanel(img, x, y, ChanelType.R)
-        rgb.g = transformChanel(img, x, y, ChanelType.R)
-        rgb.b = transformChanel(img, x, y, ChanelType.R)
+        rgb.g = transformChanel(img, x, y, ChanelType.G)
+        rgb.b = transformChanel(img, x, y, ChanelType.B)
     }
 
     private inline fun transformChanel(img: BufferedImage, x: Int, y: Int, chanelType: ChanelType): Float {
-        val gx = convoluteChanel(xMatrixFlat, 3, img, x, y, chanelType)
-        val gy = convoluteChanel(yMatrixFlat, 3, img, x, y, chanelType)
+        val gx = convolveChanel(xMatrixFlat, 3, img, x, y, chanelType)
+        val gy = convolveChanel(yMatrixFlat, 3, img, x, y, chanelType)
         return Math.sqrt((gx * gx + gy * gy).toDouble()).toFloat()
     }
 }

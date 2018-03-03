@@ -8,9 +8,9 @@ import sirgl.graphics.conversion.getRed
 import java.awt.image.BufferedImage
 
 /**
- * Expects, that [x] and [y] has are far enough from bounds
+ * Expects, that [x] and [y] are far enough from bounds
  */
-inline fun convoluteChanel(
+inline fun convolveChanel(
         matrix: FloatArray,
         kernelSize: Int,
         img: BufferedImage,
