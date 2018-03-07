@@ -6,7 +6,10 @@ import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.*
+import javax.swing.JButton
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 
 sealed class ListEvt
 
@@ -33,7 +36,7 @@ class AppliedFilterList(filtersList: Observable<MutableList<FilterModel>>) : JPa
         }
 
         list.addListSelectionListener {
-            val selectionModel = it.source as JList<String>
+            val selectionModel = it.source as JList<*>
             val index = selectionModel.minSelectionIndex
             if (index < 0) return@addListSelectionListener
             val filterList = filtersList.value ?: return@addListSelectionListener

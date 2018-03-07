@@ -217,7 +217,7 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
 
 }
 
-open class KernelData (
+open class KernelData(
         val dimension: Int,
         val normalizationType: NormalizationType
 )

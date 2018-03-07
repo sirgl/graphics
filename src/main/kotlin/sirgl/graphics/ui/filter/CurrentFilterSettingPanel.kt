@@ -2,7 +2,6 @@ package sirgl.graphics.ui.filter
 
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.ui.Invisible
-import java.awt.Dimension
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 

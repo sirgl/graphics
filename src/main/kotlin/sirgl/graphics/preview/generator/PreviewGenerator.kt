@@ -1,6 +1,9 @@
 package sirgl.graphics.preview.generator
 
-import sirgl.graphics.filter.*
+import sirgl.graphics.filter.ImageFilter
+import sirgl.graphics.filter.MatrixKernelData
+import sirgl.graphics.filter.NormalizationType
+import sirgl.graphics.filter.PerChanelMatrixFilter
 import sirgl.graphics.filter.gauss.generateGaussMatrix
 import sirgl.graphics.filter.grayscale.GrayscaleFilter
 import sirgl.graphics.filter.hsv.HSVImageFilter
@@ -37,7 +40,7 @@ fun generatePreviews(outputDir: Path, sourceImage: BufferedImage, filters: Map<S
     for ((name, filter) in filters) {
         val copy = deepCopy(sourceImage)
         filter.transform(sourceImage, copy)
-        val fileOutputStream = FileOutputStream(outputDir.resolve(name + ".png").toString(), false)
+        val fileOutputStream = FileOutputStream(outputDir.resolve("$name.png").toString(), false)
         ImageIO.write(copy, "png", fileOutputStream)
     }
 }

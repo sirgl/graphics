@@ -16,7 +16,7 @@ class FilterPreviewList(filterModelFactories: List<FilterModelFactory<*>>) : JPa
 
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        list.cellRenderer = object: ListCellRenderer<FilterModelFactory<*>?> {
+        list.cellRenderer = object : ListCellRenderer<FilterModelFactory<*>?> {
             override fun getListCellRendererComponent(
                     list: JList<out FilterModelFactory<*>?>,
                     value: FilterModelFactory<*>?,
@@ -29,7 +29,7 @@ class FilterPreviewList(filterModelFactories: List<FilterModelFactory<*>>) : JPa
                 return SplitPanel(label, JLabel(value.name), 1.0, 5.0)
             }
         }
-        list.addMouseListener(object: MouseAdapter() {
+        list.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val index = list.locationToIndex(e.point)
                 val fileModelFactory = list.model.getElementAt(index)

@@ -4,6 +4,7 @@ import sirgl.graphics.canvas.Canvas
 import sirgl.graphics.canvas.ScrolledCanvas
 import sirgl.graphics.components.SplitPanel
 import sirgl.graphics.core.App
+import sirgl.graphics.core.Filters
 import sirgl.graphics.ui.filter.FilterPanel
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -39,7 +40,7 @@ class MainPanel(val app: App) : JPanel() {
         val pane = JTabbedPane()
         pane.preferredSize = Dimension(250, 550)
         pane.addTab("General", GeneralSettingsPanel(app))
-        pane.addTab("Filters", FilterPanel(app))
+        pane.addTab("Filters", FilterPanel(app.filters as Filters))
         return pane
     }
 }

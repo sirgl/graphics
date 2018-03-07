@@ -7,13 +7,6 @@ import sirgl.graphics.observable.SimpleObservable
 import java.awt.image.BufferedImage
 import kotlin.math.absoluteValue
 
-//private val m = arrayOf(
-//        arrayOf(0, -1, 0),
-//        arrayOf(-1, 5, -1),
-//        arrayOf(0, -1, 0)
-//).flattenNum()
-
-
 class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelData(3, NormalizationType.MaxRatio))) {
     override fun transformRGB(x: Int, y: Int, img: BufferedImage, rgb: RGB) {
         rgb.r = transformChanel(img, x, y, ChanelType.R)

@@ -1,31 +1,31 @@
 package sirgl.graphics.ui.filter
 
-import sirgl.graphics.core.App
+import sirgl.graphics.core.Filters
 import sirgl.graphics.filter.filterModelFactories
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JPanel
 
 
-class FilterPanel(app: App) : JPanel() {
+class FilterPanel(filters: Filters) : JPanel() {
 
     init {
-        val filtersObservable = app.filtersObservable
+        val filtersObservable = filters.filtersObservable
 
         val appliedFilterList = AppliedFilterList(filtersObservable)
         appliedFilterList.listObservable.subscribe {
             when (it) {
-                is ClearListEvt -> app.clearFilters()
-                is ListElementSelectedEvt -> app.selectedFilterPanel.value = it.model.panel
+                is ClearListEvt -> filters.clearFilters()
+                is ListElementSelectedEvt -> filters.selectedFilterPanel.value = it.model.panel
             }
         }
 
         val filterPreviewList = FilterPreviewList(filterModelFactories)
         filterPreviewList.selectedFilter.subscribe {
-            app.addFilter(it?.create(app) ?: return@subscribe)
+            filters.addFilter(it?.create(filters) ?: return@subscribe)
         }
 
-        val currentFilterSettingPanel = CurrentFilterSettingPanel(app.selectedFilterPanel)
+        val currentFilterSettingPanel = CurrentFilterSettingPanel(filters.selectedFilterPanel)
 
         layout = GridBagLayout()
         val c = GridBagConstraints()

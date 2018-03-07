@@ -17,11 +17,11 @@ inline fun convolveChanel(
         x: Int,
         y: Int,
         chanelType: ChanelType
-) : Float {
+): Float {
     val radius = kernelSize / 2
     var sum = 0f
-    for (currentY in (y - radius .. y + radius)) {
-        for (currentX in (x - radius .. x + radius)) {
+    for (currentY in (y - radius..y + radius)) {
+        for (currentX in (x - radius..x + radius)) {
             val rgb = img.getRGB(currentX, currentY)
             val chanelValue = selectChanel(chanelType, rgb)
             val matrixX = currentX - x + radius

@@ -25,7 +25,7 @@ class GaussFilterPanel : JPanel() {
                 .map { GaussInputData(sizeObservable.value ?: return@map null, it ?: return@map null) }
                 .transmitTo(gaussDataObservable)
         sizeObservable
-                .map { GaussInputData(it ?: return@map null,sigmaObservable.value ?: return@map null) }
+                .map { GaussInputData(it ?: return@map null, sigmaObservable.value ?: return@map null) }
         add(radiusPanel)
     }
 }

@@ -5,4 +5,6 @@ import javax.swing.JPanel
 interface FilterModel : Presentable {
     val filter: ImageFilter
     val panel: JPanel
+
+    fun dropBuffers() {}
 }

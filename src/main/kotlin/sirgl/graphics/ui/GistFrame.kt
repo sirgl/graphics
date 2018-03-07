@@ -20,9 +20,9 @@ class GistFrame(app: App) : JFrame() {
             dropdown.observable.map {
                 it ?: return@map null
                 GistType.valueOf(it)
-            }.transmitTo(app.gistTypeObservable)
+            }.transmitTo(app.gists.gistTypeObservable)
             add(dropdown)
-            add(GistCanvas(app.gistObservable))
+            add(GistCanvas(app.gists.gistObservable))
         })
 
         defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
