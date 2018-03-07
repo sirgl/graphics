@@ -1,6 +1,7 @@
 package sirgl.graphics.preview.generator
 
-import sirgl.graphics.filter.ImageFilter
+import sirgl.graphics.filter.*
+import sirgl.graphics.filter.gauss.generateGaussMatrix
 import sirgl.graphics.filter.grayscale.GrayscaleFilter
 import sirgl.graphics.filter.hsv.HSVImageFilter
 import sirgl.graphics.filter.sobel.SobelFilter
@@ -20,7 +21,10 @@ fun main(args: Array<String>) {
     val filters = mapOf(
             "grayscale" to GrayscaleFilter(),
             "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
-            "sobel" to SobelFilter()
+            "sobel" to SobelFilter(),
+            "gauss" to PerChanelMatrixFilter(
+                    SimpleObservable(MatrixKernelData(3, NormalizationType.Natural, generateGaussMatrix(3, 1f)))
+            )
     )
     hSlider.refresh()
     sSlider.refresh()

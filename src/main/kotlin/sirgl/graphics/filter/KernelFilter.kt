@@ -18,7 +18,8 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val srcHeight = src.height
         val srcWidth = src.width
-        val dimension = kernelDataObservable.value?.dimension ?: return false
+        val kernelData = kernelDataObservable.value ?: return false
+        val dimension = kernelData.dimension
         val edgeExtension = dimension - 1
         val extendedHeight = srcHeight + edgeExtension
         val extendedWidth = srcWidth + edgeExtension
@@ -48,10 +49,16 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
             }
         }
         val maxValue = max(max(normalizationBufferR.max()!!, normalizationBufferG.max()!!), normalizationBufferB.max()!!)
-        if (maxValue > 255.0f) {
-            // TODO Probably here we can use norm ratio
-            val normValue = 255.0f / maxValue
-            normalize(normValue, normalizationBufferR, normalizationBufferG, normalizationBufferB, extendedWidth, extendedHeight)
+        when (kernelData.normalizationType) {
+            NormalizationType.Natural -> {
+                val matrixKernelData = kernelData as MatrixKernelData
+                val sum = matrixKernelData.matrix.sum()
+                normalize(1 / sum, normalizationBufferR, normalizationBufferG, normalizationBufferB, extendedWidth, extendedHeight)
+            }
+            NormalizationType.MaxRatio -> {
+                val normValue = 255.0f / maxValue
+                normalize(normValue, normalizationBufferR, normalizationBufferG, normalizationBufferB, extendedWidth, extendedHeight)
+            }
         }
         copy(singleEdgeExt + srcWidth, singleEdgeExt + srcHeight, res, singleEdgeExt, extendedWidth)
         return true
@@ -210,10 +217,21 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
 
 }
 
-class KernelData (
+open class KernelData (
         val dimension: Int,
-        val normalizationRatio: Float
+        val normalizationType: NormalizationType
 )
+
+class MatrixKernelData(
+        dimension: Int,
+        normalizationType: NormalizationType,
+        val matrix: FloatArray
+) : KernelData(dimension, normalizationType)
+
+enum class NormalizationType {
+    Natural,
+    MaxRatio
+}
 
 class RGB(
         var r: Float,

@@ -14,7 +14,7 @@ import kotlin.math.absoluteValue
 //).flattenNum()
 
 
-class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelData(3, 8f))) {
+class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelData(3, NormalizationType.MaxRatio))) {
     override fun transformRGB(x: Int, y: Int, img: BufferedImage, rgb: RGB) {
         rgb.r = transformChanel(img, x, y, ChanelType.R)
         rgb.g = transformChanel(img, x, y, ChanelType.G)
