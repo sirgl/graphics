@@ -1,6 +1,7 @@
 package sirgl.graphics.ui.filter
 
 import sirgl.graphics.components.vBox
+import sirgl.graphics.core.Filters
 import sirgl.graphics.filter.FilterModel
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
@@ -16,7 +17,7 @@ sealed class ListEvt
 class ClearListEvt : ListEvt()
 class ListElementSelectedEvt(val model: FilterModel) : ListEvt()
 
-class AppliedFilterList(filtersList: Observable<MutableList<FilterModel>>) : JPanel() {
+class AppliedFilterList(filtersList: Observable<MutableList<FilterModel>>, filters: Filters) : JPanel() {
     val listObservable: Observable<ListEvt> = SimpleObservable<ListEvt>(null)
     val list = JList<String>()
     val clearButton = JButton("Clear")
@@ -50,6 +51,7 @@ class AppliedFilterList(filtersList: Observable<MutableList<FilterModel>>) : JPa
         c.gridy = 1
         clearButton.addActionListener {
             listObservable.value = ClearListEvt()
+            filters.filterConfigurationChanged()
         }
         add(vBox { add(clearButton) }, c)
     }

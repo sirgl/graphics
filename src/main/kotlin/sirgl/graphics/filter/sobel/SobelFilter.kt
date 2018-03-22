@@ -7,7 +7,7 @@ import sirgl.graphics.observable.SimpleObservable
 import java.awt.image.BufferedImage
 import kotlin.math.absoluteValue
 
-class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelData(3, NormalizationType.MaxRatio))) {
+class SobelFilter : KernelFilter(SimpleObservable(KernelInfo(3))) {
     override fun transformRGB(x: Int, y: Int, img: BufferedImage, rgb: RGB) {
         rgb.r = transformChanel(img, x, y, ChanelType.R)
         rgb.g = transformChanel(img, x, y, ChanelType.G)
@@ -15,8 +15,8 @@ class SobelFilter : MatrixFilter(kernelDataObservable = SimpleObservable(KernelD
     }
 
     private inline fun transformChanel(img: BufferedImage, x: Int, y: Int, chanelType: ChanelType): Float {
-        val gx = convolveChanel(xMatrixFlat, 3, img, x, y, chanelType)
-        val gy = convolveChanel(yMatrixFlat, 3, img, x, y, chanelType)
+        val gx = convolveChanel(xMatrixFlat, img, x, y, chanelType)
+        val gy = convolveChanel(yMatrixFlat, img, x, y, chanelType)
         return Math.sqrt((gx * gx + gy * gy).toDouble()).toFloat()
     }
 }
@@ -35,8 +35,12 @@ private val yMatrix = arrayOf(
         arrayOf(-1, -2, -1)
 )
 
-private val xMatrixFlat = xMatrix.flattenNum()
-private val yMatrixFlat = yMatrix.flattenNum()
+private val xMatrixFlat = xMatrix.flattenNum().toMatrix()
+private val yMatrixFlat = yMatrix.flattenNum().toMatrix()
+
+private fun FloatArray.toMatrix(): Matrix {
+    return Matrix(3, 3, this)
+}
 
 private fun Array<Array<Int>>.flattenNum(): FloatArray {
     val flat = FloatArray(size * size)

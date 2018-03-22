@@ -11,22 +11,25 @@ import java.awt.image.BufferedImage
  * Expects, that [x] and [y] are far enough from bounds
  */
 inline fun convolveChanel(
-        matrix: FloatArray,
-        kernelSize: Int,
+        matrix: Matrix,
         img: BufferedImage,
         x: Int,
         y: Int,
         chanelType: ChanelType
 ): Float {
-    val radius = kernelSize / 2
+    val radius = matrix.width / 2
     var sum = 0f
-    for (currentY in (y - radius..y + radius)) {
-        for (currentX in (x - radius..x + radius)) {
+    val startY = y - radius
+    val endY = y + radius
+    val startX = x - radius
+    val endX = x + radius
+    for (currentY in (startY..endY)) {
+        for (currentX in (startX..endX)) {
             val rgb = img.getRGB(currentX, currentY)
             val chanelValue = selectChanel(chanelType, rgb)
             val matrixX = currentX - x + radius
             val matrixY = currentY - y + radius
-            val kernelVal = matrix.getXY(matrixX, matrixY, kernelSize)
+            val kernelVal = matrix.getXY(matrixX, matrixY)
             sum += kernelVal * chanelValue
         }
     }

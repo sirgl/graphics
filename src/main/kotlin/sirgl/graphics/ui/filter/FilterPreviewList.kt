@@ -1,6 +1,8 @@
 package sirgl.graphics.ui.filter
 
 import sirgl.graphics.components.SplitPanel
+import sirgl.graphics.core.App
+import sirgl.graphics.core.Filters
 import sirgl.graphics.filter.FilterModelFactory
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
@@ -10,7 +12,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 
 
-class FilterPreviewList(filterModelFactories: List<FilterModelFactory<*>>) : JPanel() {
+class FilterPreviewList(filterModelFactories: List<FilterModelFactory<*>>, filters: Filters) : JPanel() {
     private val list = JList<FilterModelFactory<*>>(filterModelFactories.toTypedArray())
     val selectedFilter: Observable<FilterModelFactory<*>> = SimpleObservable<FilterModelFactory<*>>(null)
 
@@ -34,6 +36,7 @@ class FilterPreviewList(filterModelFactories: List<FilterModelFactory<*>>) : JPa
                 val index = list.locationToIndex(e.point)
                 val fileModelFactory = list.model.getElementAt(index)
                 selectedFilter.value = fileModelFactory
+                filters.filterConfigurationChanged()
             }
         })
         add(JScrollPane(list))

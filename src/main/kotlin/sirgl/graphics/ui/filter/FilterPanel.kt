@@ -12,7 +12,7 @@ class FilterPanel(filters: Filters) : JPanel() {
     init {
         val filtersObservable = filters.filtersObservable
 
-        val appliedFilterList = AppliedFilterList(filtersObservable)
+        val appliedFilterList = AppliedFilterList(filtersObservable, filters)
         appliedFilterList.listObservable.subscribe {
             when (it) {
                 is ClearListEvt -> filters.clearFilters()
@@ -20,7 +20,7 @@ class FilterPanel(filters: Filters) : JPanel() {
             }
         }
 
-        val filterPreviewList = FilterPreviewList(filterModelFactories)
+        val filterPreviewList = FilterPreviewList(filterModelFactories, filters)
         filterPreviewList.selectedFilter.subscribe {
             filters.addFilter(it?.create(filters) ?: return@subscribe)
         }

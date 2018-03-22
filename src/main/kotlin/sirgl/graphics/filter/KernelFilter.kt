@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package sirgl.graphics.filter
 
 import sirgl.graphics.conversion.constructRgbI
@@ -7,92 +5,95 @@ import sirgl.graphics.observable.Observable
 import java.awt.image.BufferedImage
 import kotlin.math.max
 
-// TODO add cache invalidation event observer
-abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelData>) : ImageFilter {
+@Suppress("NOTHING_TO_INLINE")
+abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>) : ImageFilter {
     private var extendedImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
-    private var normalizationBufferR = FloatArray(0)
-    private var normalizationBufferG = FloatArray(0)
-    private var normalizationBufferB = FloatArray(0)
+    private var normalizationBufferR = Matrix(0, 0)
+    private var normalizationBufferG = Matrix(0, 0)
+    private var normalizationBufferB = Matrix(0, 0)
     private val rgbBuffer = RGB(0f, 0f, 0f)
+
 
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val srcHeight = src.height
         val srcWidth = src.width
-        val kernelData = kernelDataObservable.value ?: return false
-        val dimension = kernelData.dimension
-        val edgeExtension = dimension - 1
-        val extendedHeight = srcHeight + edgeExtension
-        val extendedWidth = srcWidth + edgeExtension
-        val singleEdgeExt = edgeExtension / 2
-        if (extendedHeight != extendedImage.height || extendedWidth != extendedImage.width) { // TODO also check
+        val kernelInfo = kernelObservable.value ?: return false
+        println("Apply kernel filter: ${kernelInfo.dimension}")
+        val edgeExtension = kernelInfo.edgeExtension
+        val extendedHeight = srcHeight + edgeExtension + edgeExtension
+        val extendedWidth = srcWidth + edgeExtension + edgeExtension
+        if (extendedHeight != extendedImage.height || extendedWidth != extendedImage.width) {
             extendedImage = BufferedImage(extendedWidth, extendedHeight, BufferedImage.TYPE_INT_RGB)
-            normalizationBufferR = FloatArray(extendedWidth * extendedHeight)
-            normalizationBufferG = FloatArray(extendedWidth * extendedHeight)
-            normalizationBufferB = FloatArray(extendedWidth * extendedHeight)
+            normalizationBufferR = Matrix(srcWidth, srcHeight)
+            normalizationBufferG = Matrix(srcWidth, srcHeight)
+            normalizationBufferB = Matrix(srcWidth, srcHeight)
         }
+        fillExtendedImage(extendedWidth, extendedHeight, edgeExtension, srcWidth, srcHeight, src)
+        traverse(srcHeight, srcWidth, edgeExtension)
+        normalize(kernelInfo)
+        copyFromBuffers(res)
+        return true
+    }
 
-        fillExtendedImage(extendedWidth, extendedHeight, singleEdgeExt, srcWidth, srcHeight, src)
+    private fun copyFromBuffers(to: BufferedImage) {
+        val width = to.width
+        val height = to.height
+        for (y in (0 until height)) {
+            for (x in (0 until width)) {
+                val r = normalizationBufferR.getXY(x, y)
+                val g = normalizationBufferG.getXY(x, y)
+                val b = normalizationBufferB.getXY(x, y)
+                if (r > 255f || g > 255f || b > 255f) {
+                    println("$r $g $b")
+                }
+                val rgb = constructRgbI(r, g, b)
+                to.setRGB(x, y, rgb)
+            }
+        }
+    }
 
+    private fun normalize(kernelInfo: KernelInfo) {
+        if (kernelInfo !is MatrixKernelInfo || kernelInfo.matrix.values.sum() < 0.004) {
+            val maxValue = max(
+                    max(normalizationBufferR.values.max()!!, normalizationBufferG.values.max()!!),
+                    normalizationBufferB.values.max()!!
+            )
+            val normValue = 255.0f / maxValue
+            normalize(normValue)
+        } else {
+            val sum = kernelInfo.matrix.values.sum()
+            normalize(1 / sum)
+        }
+    }
+
+    private fun traverse(srcHeight: Int, srcWidth: Int, edgeExtension: Int) {
         for (y in (0 until srcHeight)) {
             for (x in (0 until srcWidth)) {
-                val xShifted = x + singleEdgeExt
-                val yShifted = y + singleEdgeExt
+                val xShifted = x + edgeExtension
+                val yShifted = y + edgeExtension
                 transformRGB(
                         xShifted,
                         yShifted,
                         extendedImage,
                         rgbBuffer
                 )
-                normalizationBufferR.setXY(xShifted, yShifted, extendedWidth, rgbBuffer.r)
-                normalizationBufferG.setXY(xShifted, yShifted, extendedWidth, rgbBuffer.g)
-                normalizationBufferB.setXY(xShifted, yShifted, extendedWidth, rgbBuffer.b)
+                normalizationBufferR.setXY(x, y, rgbBuffer.r)
+                normalizationBufferG.setXY(x, y, rgbBuffer.g)
+                normalizationBufferB.setXY(x, y, rgbBuffer.b)
             }
         }
-        val maxValue = max(max(normalizationBufferR.max()!!, normalizationBufferG.max()!!), normalizationBufferB.max()!!)
-        when (kernelData.normalizationType) {
-            NormalizationType.Natural -> {
-                val matrixKernelData = kernelData as MatrixKernelData
-                val sum = matrixKernelData.matrix.sum()
-                normalize(1 / sum, normalizationBufferR, normalizationBufferG, normalizationBufferB, extendedWidth, extendedHeight)
-            }
-            NormalizationType.MaxRatio -> {
-                val normValue = 255.0f / maxValue
-                normalize(normValue, normalizationBufferR, normalizationBufferG, normalizationBufferB, extendedWidth, extendedHeight)
-            }
-        }
-        copy(singleEdgeExt + srcWidth, singleEdgeExt + srcHeight, res, singleEdgeExt, extendedWidth)
-        return true
     }
 
     private fun normalize(
-            normCoefficient: Float,
-            rArr: FloatArray,
-            gArr: FloatArray,
-            bArr: FloatArray,
-            extWidth: Int,
-            extHeight: Int
+            normCoefficient: Float
     ) {
-        for (y in (0 until extHeight)) {
-            for (x in (0 until extWidth)) {
-                rArr.setXY(x, y, extWidth, rArr.getXY(x, y, extWidth) * normCoefficient)
-                gArr.setXY(x, y, extWidth, gArr.getXY(x, y, extWidth) * normCoefficient)
-                bArr.setXY(x, y, extWidth, bArr.getXY(x, y, extWidth) * normCoefficient)
-            }
-        }
-    }
-
-
-    private fun copy(xEnd: Int, yEnd: Int, to: BufferedImage, edgeExtension: Int, width: Int) {
-        for (y in (edgeExtension until yEnd)) {
-            for (x in (edgeExtension until xEnd)) {
-                val r = normalizationBufferR.getXY(x, y, width)
-                val g = normalizationBufferG.getXY(x, y, width)
-                val b = normalizationBufferB.getXY(x, y, width)
-                if (r > 255f || g > 255f || b > 255f) {
-                    println("$r $g $b")
-                }
-                val rgb = constructRgbI(r, g, b)
-                to.setRGB(x - edgeExtension, y - edgeExtension, rgb)
+        val height = normalizationBufferR.height
+        val width = normalizationBufferR.width
+        for (y in (0 until height)) {
+            for (x in (0 until width)) {
+                normalizationBufferR.setXY(x, y, normalizationBufferR.getXY(x, y) * normCoefficient)
+                normalizationBufferG.setXY(x, y, normalizationBufferG.getXY(x, y) * normCoefficient)
+                normalizationBufferB.setXY(x, y, normalizationBufferB.getXY(x, y) * normCoefficient)
             }
         }
     }
@@ -169,7 +170,7 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
                 leftInternalEdge,
                 downInternalEdge,
                 singleEdgeExt,
-                { x, y -> src.getRGB(0, y) }
+                { _, y -> src.getRGB(0, y) }
         )
         // Down
         fillSideRegion(
@@ -214,37 +215,22 @@ abstract class MatrixFilter(private val kernelDataObservable: Observable<KernelD
             }
         }
     }
-
 }
 
-open class KernelData(
-        val dimension: Int,
-        val normalizationType: NormalizationType
-)
-
-class MatrixKernelData(
-        dimension: Int,
-        normalizationType: NormalizationType,
-        val matrix: FloatArray
-) : KernelData(dimension, normalizationType)
-
-enum class NormalizationType {
-    Natural,
-    MaxRatio
+open class KernelInfo(
+        val dimension: Int
+) {
+    val edgeExtension: Int
+        get() = dimension / 2
 }
+
+// Expects to be square
+class MatrixKernelInfo(
+        val matrix: Matrix
+) : KernelInfo(matrix.width)
 
 class RGB(
         var r: Float,
         var g: Float,
         var b: Float
 )
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun FloatArray.getXY(x: Int, y: Int, width: Int): Float {
-    return this[width * y + x]
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun FloatArray.setXY(x: Int, y: Int, width: Int, value: Float) {
-    this[x + y * width] = value
-}

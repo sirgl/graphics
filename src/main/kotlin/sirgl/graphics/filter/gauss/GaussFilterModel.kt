@@ -5,15 +5,16 @@ import sirgl.graphics.filter.*
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.map
 import sirgl.graphics.observable.transmitTo
+import java.lang.Math.*
 
 class GaussFilterModel(presentable: Presentable, filters: FFilters) : FilterModel, Presentable by presentable {
     private val gaussDataObservable = SimpleObservable(
-            GaussData(KernelData(3, NormalizationType.Natural), 1f)
+            GaussData(KernelInfo(3), 1f)
     )
 
     override val filter = PerChanelMatrixFilter(gaussDataObservable.map {
-        val kernelData = it?.kernelData ?: return@map null
-        MatrixKernelData(kernelData.dimension, NormalizationType.Natural, generateGaussMatrix(kernelData.dimension, it.sigma))
+        val kernelData = it?.kernelInfo ?: return@map null
+        MatrixKernelInfo(generateGaussMatrix(kernelData.dimension, it.sigma))
     })
     override val panel = GaussFilterPanel()
 
@@ -23,24 +24,49 @@ class GaussFilterModel(presentable: Presentable, filters: FFilters) : FilterMode
         }
         panel.gaussDataObservable.map {
             it ?: return@map null
-            MatrixKernelData(it.size, NormalizationType.Natural, generateGaussMatrix(it.size, it.sigma)) as KernelData
-        }.transmitTo(filter.kernelDataObservable)
+            println("change")
+            MatrixKernelInfo(generateGaussMatrix(it.size, it.sigma)) as KernelInfo
+        }.transmitTo(filter.kernelObservable)
     }
 
 }
 
 class GaussData(
-        val kernelData: KernelData,
+        val kernelInfo: KernelInfo,
         val sigma: Float
 )
 
-fun generateGaussMatrix(size: Int, sigma: Float): FloatArray {
-    val matrix = FloatArray(size * size)
-    val multiplier = 1f / (2 * Math.PI.toFloat() * sigma * sigma)
-    for (y in (0 until size)) {
-        for (x in (0 until size)) {
-            matrix.setXY(x, y, size, multiplier * Math.exp(-(x * x + y * y) / (2 * sigma * sigma).toDouble()).toFloat())
+//fun generateGaussMatrix(size: Int, sigma: Float): Matrix {
+//    val matrix = Matrix(size, size)
+//    val multiplier = 1f / (2 * Math.PI.toFloat() * sigma * sigma)
+//    for (y in (0 until size)) {
+//        for (x in (0 until size)) {
+//            matrix.setXY(x, y, multiplier * Math.exp(-(x * x + y * y) / (2 * sigma * sigma).toDouble()).toFloat())
+//        }
+//    }
+//    return matrix
+//
+//
+//}
+
+fun generateGaussMatrix(size: Int, sigma: Float): Matrix {
+    val kernel = Matrix(size, size)
+    val mean = size / 2.0
+    var sum = 0.0f // For accumulating the kernel values
+    for (x in (0 until size)) {
+        for (y in (0 until size)) {
+            val value = (exp(-0.5 * (pow((x - mean) / sigma, 2.0) + pow((y - mean) / sigma, 2.0))) / (2 * PI * sigma * sigma)).toFloat()
+            kernel.setXY(x, y, value)
+
+            // Accumulate the kernel values
+            sum += value
         }
     }
-    return matrix
+
+    for (x in (0 until size)) {
+        for (y in (0 until size)) {
+            kernel.setXY(x, y, kernel.getXY(x, y) / sum)
+        }
+    }
+    return kernel
 }
