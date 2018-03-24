@@ -4,6 +4,7 @@ import sirgl.graphics.conversion.constructRgbI
 import sirgl.graphics.observable.Observable
 import java.awt.image.BufferedImage
 import kotlin.math.max
+import kotlin.math.min
 
 @Suppress("NOTHING_TO_INLINE")
 abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>) : ImageFilter {
@@ -53,16 +54,21 @@ abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>
     }
 
     private fun normalize(kernelInfo: KernelInfo) {
-        if (kernelInfo !is MatrixKernelInfo || kernelInfo.matrix.values.sum() < 0.004) {
+        if (kernelInfo !is MatrixKernelInfo || kernelInfo.matrix.values.sum() < 0.04) {
+            val minValue = min(
+                    min(normalizationBufferR.values.min()!!, normalizationBufferG.values.min()!!),
+                    normalizationBufferB.values.min()!!
+            )
             val maxValue = max(
                     max(normalizationBufferR.values.max()!!, normalizationBufferG.values.max()!!),
                     normalizationBufferB.values.max()!!
-            )
+            ) - minValue
             val normValue = 255.0f / maxValue
-            normalize(normValue)
+            normalize(normValue, minValue)
         } else {
+
             val sum = kernelInfo.matrix.values.sum()
-            normalize(1 / sum)
+            normalize(1 / sum, 0f)
         }
     }
 
@@ -85,15 +91,19 @@ abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>
     }
 
     private fun normalize(
-            normCoefficient: Float
+            normCoefficient: Float,
+            minValue: Float
     ) {
         val height = normalizationBufferR.height
         val width = normalizationBufferR.width
         for (y in (0 until height)) {
             for (x in (0 until width)) {
-                normalizationBufferR.setXY(x, y, normalizationBufferR.getXY(x, y) * normCoefficient)
-                normalizationBufferG.setXY(x, y, normalizationBufferG.getXY(x, y) * normCoefficient)
-                normalizationBufferB.setXY(x, y, normalizationBufferB.getXY(x, y) * normCoefficient)
+                val r = (normalizationBufferR.getXY(x, y) - minValue) * normCoefficient
+                normalizationBufferR.setXY(x, y, r)
+                val g = (normalizationBufferG.getXY(x, y) - minValue) * normCoefficient
+                normalizationBufferG.setXY(x, y, g)
+                val b = (normalizationBufferB.getXY(x, y) - minValue) * normCoefficient
+                normalizationBufferB.setXY(x, y, b)
             }
         }
     }

@@ -1,10 +1,9 @@
 package sirgl.graphics.filter.gauss
 
-import sirgl.graphics.components.ObservableSpinner
+import sirgl.graphics.components.ObservableIntSpinner
 import sirgl.graphics.components.SplitPanel
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.map
-import java.awt.Dimension
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -15,10 +14,10 @@ class GaussFilterPanel : JPanel() {
 
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        val sigmaSlider = ObservableSpinner(0, 200, 100)
+        val sigmaSlider = ObservableIntSpinner(0, 200, 100)
         val sigmaPanel = SplitPanel(JLabel("sigma/100 (0..2)"), sigmaSlider, 1.0, 2.0)
         add(sigmaPanel)
-        val radiusSlider = ObservableSpinner(1, 10, 1)
+        val radiusSlider = ObservableIntSpinner(1, 10, 1)
         val radiusPanel = SplitPanel(JLabel("radius"), radiusSlider, 1.0, 2.0)
         val sigmaObservable = sigmaSlider.observable.map { (it ?: return@map null) / 100f }
         val sizeObservable = radiusSlider.observable.map { (it ?: return@map null) * 2 + 1 }

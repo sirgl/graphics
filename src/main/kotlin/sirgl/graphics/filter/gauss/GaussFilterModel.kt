@@ -36,19 +36,6 @@ class GaussData(
         val sigma: Float
 )
 
-//fun generateGaussMatrix(size: Int, sigma: Float): Matrix {
-//    val matrix = Matrix(size, size)
-//    val multiplier = 1f / (2 * Math.PI.toFloat() * sigma * sigma)
-//    for (y in (0 until size)) {
-//        for (x in (0 until size)) {
-//            matrix.setXY(x, y, multiplier * Math.exp(-(x * x + y * y) / (2 * sigma * sigma).toDouble()).toFloat())
-//        }
-//    }
-//    return matrix
-//
-//
-//}
-
 fun generateGaussMatrix(size: Int, sigma: Float): Matrix {
     val kernel = Matrix(size, size)
     val mean = size / 2.0
