@@ -4,6 +4,7 @@ import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.filter.Matrix
 import sirgl.graphics.filter.MatrixKernelInfo
 import sirgl.graphics.filter.PerChanelMatrixFilter
+import sirgl.graphics.filter.gabor.GaborFilter
 import sirgl.graphics.filter.gabor.generateGaborKernel
 import sirgl.graphics.filter.gauss.generateGaussMatrix
 import sirgl.graphics.filter.grayscale.GrayscaleFilter
@@ -24,14 +25,14 @@ fun main(args: Array<String>) {
     val sSlider = SimpleObservable(60)
     val vSlider = SimpleObservable(30)
     val filters: Map<String, ImageFilter> = mapOf(
-            "grayscale" to GrayscaleFilter(),
-            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
-            "sobel" to SobelFilter(),
-            "gauss" to PerChanelMatrixFilter(
-                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
-            ),
-            "gabor" to PerChanelMatrixFilter(
-                    SimpleObservable(MatrixKernelInfo(generateGaborKernel(3, 45f)))
+//            "grayscale" to GrayscaleFilter(),
+//            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
+//            "sobel" to SobelFilter(),
+//            "gauss" to PerChanelMatrixFilter(
+//                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
+//            ),
+            "gabor" to GaborFilter(
+                    SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
             )
     )
     hSlider.refresh()

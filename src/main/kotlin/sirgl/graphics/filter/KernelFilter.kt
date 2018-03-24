@@ -1,6 +1,7 @@
 package sirgl.graphics.filter
 
 import sirgl.graphics.conversion.constructRgbI
+import sirgl.graphics.filter.gabor.GaborFilter
 import sirgl.graphics.observable.Observable
 import java.awt.image.BufferedImage
 import kotlin.math.max
@@ -54,19 +55,21 @@ abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>
     }
 
     private fun normalize(kernelInfo: KernelInfo) {
-        if (kernelInfo !is MatrixKernelInfo || kernelInfo.matrix.values.sum() < 0.04) {
-            val minValue = min(
-                    min(normalizationBufferR.values.min()!!, normalizationBufferG.values.min()!!),
-                    normalizationBufferB.values.min()!!
-            )
-            val maxValue = max(
-                    max(normalizationBufferR.values.max()!!, normalizationBufferG.values.max()!!),
-                    normalizationBufferB.values.max()!!
-            ) - minValue
-            val normValue = 255.0f / maxValue
-            normalize(normValue, minValue)
+        val minValue = min(
+                min(normalizationBufferR.values.min()!!, normalizationBufferG.values.min()!!),
+                normalizationBufferB.values.min()!!
+        )
+        val maxValue = max(
+                max(normalizationBufferR.values.max()!!, normalizationBufferG.values.max()!!),
+                normalizationBufferB.values.max()!!
+        )
+        if (kernelInfo !is MatrixKernelInfo || kernelInfo.matrix.values.sum() < 0.04 || this is GaborFilter) {
+            val delta = maxValue - minValue
+            val normValue = 255.0f / delta
+            if (delta >= 0.004f) {
+                normalize(normValue, minValue)
+            }
         } else {
-
             val sum = kernelInfo.matrix.values.sum()
             normalize(1 / sum, 0f)
         }

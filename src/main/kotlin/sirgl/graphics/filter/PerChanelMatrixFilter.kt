@@ -3,7 +3,7 @@ package sirgl.graphics.filter
 import sirgl.graphics.observable.Observable
 import java.awt.image.BufferedImage
 
-class PerChanelMatrixFilter(
+open class PerChanelMatrixFilter(
         val kernelObservable: Observable<KernelInfo>
 ) : KernelFilter(kernelObservable) {
 

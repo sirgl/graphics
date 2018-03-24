@@ -13,7 +13,7 @@ import kotlin.math.sin
 
 class GaborFilterModel(private val presentable: Presentable, private val filters: Filters) : FilterModel, Presentable by presentable {
     private val kernelObservable = SimpleObservable(GaborInfo(1, 45f))
-    override val filter = PerChanelMatrixFilter(kernelObservable.map {
+    override val filter = GaborFilter(kernelObservable.map {
         println("Gabor info changed $it")
         val radius = it?.radius ?: return@map null
         MatrixKernelInfo(generateGaborKernel(radius * 2 + 1, it.theta))

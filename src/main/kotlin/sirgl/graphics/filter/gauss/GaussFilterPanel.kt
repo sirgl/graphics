@@ -1,5 +1,6 @@
 package sirgl.graphics.filter.gauss
 
+import sirgl.graphics.components.ObservableFloatSpinner
 import sirgl.graphics.components.ObservableIntSpinner
 import sirgl.graphics.components.SplitPanel
 import sirgl.graphics.observable.SimpleObservable
@@ -14,8 +15,8 @@ class GaussFilterPanel : JPanel() {
 
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        val sigmaSlider = ObservableIntSpinner(0, 200, 100)
-        val sigmaPanel = SplitPanel(JLabel("sigma/100 (0..2)"), sigmaSlider, 1.0, 2.0)
+        val sigmaSlider = ObservableFloatSpinner(0f, 5f, 1f, 0.1f)
+        val sigmaPanel = SplitPanel(JLabel("sigma"), sigmaSlider, 1.0, 2.0)
         add(sigmaPanel)
         val radiusSlider = ObservableIntSpinner(1, 10, 1)
         val radiusPanel = SplitPanel(JLabel("radius"), radiusSlider, 1.0, 2.0)
