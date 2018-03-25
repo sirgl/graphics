@@ -247,20 +247,36 @@ class Region(
         while (true) {
             when {
                 node.children[0] === current -> {
-                    node.children[1].collectLeftSideChildren(neighbors.right)
-                    node.children[2].collectTopSideChildren(neighbors.down)
+                    if (neighbors.right.isEmpty()) {
+                        node.children[1].collectLeftSideChildren(neighbors.right)
+                    }
+                    if (neighbors.down.isEmpty()) {
+                        node.children[2].collectTopSideChildren(neighbors.down)
+                    }
                 }
                 node.children[3] === current -> {
-                    node.children[1].collectDownSideChildren(neighbors.top)
-                    node.children[2].collectRightSideChildren(neighbors.left)
+                    if (neighbors.top.isEmpty()) {
+                        node.children[1].collectDownSideChildren(neighbors.top)
+                    }
+                    if (neighbors.left.isEmpty()) {
+                        node.children[2].collectRightSideChildren(neighbors.left)
+                    }
                 }
                 node.children[1] === current -> {
-                    node.children[0].collectRightSideChildren(neighbors.left)
-                    node.children[3].collectTopSideChildren(neighbors.down)
+                    if (neighbors.left.isEmpty()) {
+                        node.children[0].collectRightSideChildren(neighbors.left)
+                    }
+                    if (neighbors.down.isEmpty()) {
+                        node.children[3].collectTopSideChildren(neighbors.down)
+                    }
                 }
                 node.children[2] === current -> {
-                    node.children[0].collectDownSideChildren(neighbors.top)
-                    node.children[3].collectLeftSideChildren(neighbors.right)
+                    if (neighbors.top.isEmpty()) {
+                        node.children[0].collectDownSideChildren(neighbors.top)
+                    }
+                    if (neighbors.right.isEmpty()) {
+                        node.children[3].collectLeftSideChildren(neighbors.right)
+                    }
                 }
             }
             if ((node.xStart == 0 || neighbors.left.isNotEmpty()) &&
