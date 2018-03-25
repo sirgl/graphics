@@ -9,19 +9,20 @@ const val xn = 0.9504f
 const val yn = 1.0000f
 const val zn = 1.0888f
 
-fun Color.toLab(): LAB {
-    val r = red
-    val g = green
-    val b = blue
+fun Color.toLab() = LAB().apply { fromRgb(rgb) }
+
+fun LAB.fromRgb(rgb: Int) {
+    val r = getRed(rgb)
+    val g = getGreen(rgb)
+    val b = getBlue(rgb)
 
     val x = (r * 0.5767309f + g * 0.1855540f + b * 0.1881852f) / 255.0f
     val y = (r * 0.2973769f + g * 0.6273491f + b * 0.0752741f) / 255.0f
     val z = (r * 0.0270343f + g * 0.0706872f + b * 0.9911085f) / 255.0f
 
-    val lV = 116 * f(y / yn) - 16
-    val aV = 500 * (f(x / xn) - f(y / yn))
-    val bV = 200 * (f(y / yn) - f(z / zn))
-    return LAB(lV, aV, bV)
+    this.l = 116 * f(y / yn) - 16
+    this.a = 500 * (f(x / xn) - f(y / yn))
+    this.b = 200 * (f(y / yn) - f(z / zn))
 }
 
 private fun f(x: Float) = when {

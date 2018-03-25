@@ -12,6 +12,7 @@ import sirgl.graphics.filter.hsv.HSVImageFilter
 import sirgl.graphics.filter.sobel.SobelFilter
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.refresh
+import sirgl.graphics.segmentation.sam.SplitAndMergeFilter
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.FileOutputStream
@@ -25,15 +26,16 @@ fun main(args: Array<String>) {
     val sSlider = SimpleObservable(60)
     val vSlider = SimpleObservable(30)
     val filters: Map<String, ImageFilter> = mapOf(
-//            "grayscale" to GrayscaleFilter(),
-//            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
-//            "sobel" to SobelFilter(),
-//            "gauss" to PerChanelMatrixFilter(
-//                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
-//            ),
+            "grayscale" to GrayscaleFilter(),
+            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
+            "sobel" to SobelFilter(),
+            "gauss" to PerChanelMatrixFilter(
+                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
+            ),
             "gabor" to GaborFilter(
                     SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
-            )
+            ),
+            "splitAndMerge" to SplitAndMergeFilter(5.0f)
     )
     hSlider.refresh()
     sSlider.refresh()

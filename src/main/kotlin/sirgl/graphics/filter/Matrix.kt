@@ -9,11 +9,22 @@ class Matrix(val width: Int, val height: Int, val values: FloatArray = FloatArra
         }
     }
 
-    fun getXY(x: Int, y: Int): Float {
+    inline fun getXY(x: Int, y: Int): Float {
         return values[x + width * y]
     }
 
-    fun setXY(x: Int, y: Int, value: Float) {
+    inline fun setXY(x: Int, y: Int, value: Float) {
         values[x + width * y] = value
     }
+
+    inline fun forEach(action: XYValueAction) {
+        for (y in (0 until height)) {
+            for (x in (0 until width)) {
+                val value = getXY(x, y)
+                action(x, y, value)
+            }
+        }
+    }
 }
+
+typealias XYValueAction = (Int, Int, Float) -> Unit

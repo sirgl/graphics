@@ -2,12 +2,10 @@
 
 package sirgl.graphics.conversion
 
-import sirgl.graphics.conversion.FormatType.*
-import sirgl.graphics.conversion.FormatType.HSV
-import sirgl.graphics.conversion.FormatType.LAB
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.Writer
+import java.lang.Math.abs
 
 class HSV(
         var h: Float,
@@ -16,10 +14,33 @@ class HSV(
 )
 
 class LAB(
-        val l: Float,
-        val a: Float,
-        val b: Float
-)
+        var l: Float,
+        var a: Float,
+        var b: Float
+) {
+    constructor() : this(0f, 0f, 0f)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LAB
+
+        if (abs(l - other.l) > 0.004) return false
+        if (abs(a - other.a) > 0.004) return false
+        if (abs(b - other.b) > 0.004) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = l.hashCode()
+        result = 31 * result + a.hashCode()
+        result = 31 * result + b.hashCode()
+        return result
+    }
+
+}
 
 enum class FormatType {
     RGB,
@@ -47,9 +68,9 @@ fun BufferedImage.write(
         x2: Int = width - 1,
         y2: Int = height - 1
 ) = when (format) {
-    RGB -> write(writer, ::printRGB, x1, y1, x2, y2)
-    HSV -> write(writer, ::printHSV, x1, y1, x2, y2)
-    LAB -> write(writer, ::printLAB, x1, y1, x2, y2)
+    FormatType.RGB -> write(writer, ::printRGB, x1, y1, x2, y2)
+    FormatType.HSV -> write(writer, ::printHSV, x1, y1, x2, y2)
+    FormatType.LAB -> write(writer, ::printLAB, x1, y1, x2, y2)
 }
 
 fun BufferedImage.write(
