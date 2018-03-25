@@ -5,6 +5,8 @@ package sirgl.graphics.segmentation.sam
 import sirgl.graphics.conversion.LAB
 import sirgl.graphics.conversion.fromRgb
 import sirgl.graphics.filter.ImageFilter
+import sirgl.graphics.observable.Observable
+import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.segmentation.ImgLike
 import sirgl.graphics.segmentation.MonoArrayImg
 import sirgl.graphics.segmentation.computeCiede2000Metrics
@@ -13,11 +15,11 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 
-class SplitAndMergeFilter(val threshold: Float = THRESHOLD) : ImageFilter {
+class SplitAndMergeFilter(val threshold: Observable<Float> = SimpleObservable(THRESHOLD)) : ImageFilter {
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val srcImg = src.toImg()
         val resImg = res.toImg()
-        splitAndMerge(srcImg, resImg, threshold = threshold)
+        splitAndMerge(srcImg, resImg, threshold = threshold.value ?: return false)
         return true
     }
 }
