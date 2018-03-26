@@ -12,6 +12,7 @@ import sirgl.graphics.filter.hsv.HSVImageFilter
 import sirgl.graphics.filter.sobel.SobelFilter
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.refresh
+import sirgl.graphics.segmentation.norrm.slice.NormalizedSliceFilter
 import sirgl.graphics.segmentation.sam.SplitAndMergeFilter
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -35,7 +36,8 @@ fun main(args: Array<String>) {
             "gabor" to GaborFilter(
                     SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
             ),
-            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(5.0f))
+            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(5.0f)),
+            "normalizedSlice" to NormalizedSliceFilter()
     )
     hSlider.refresh()
     sSlider.refresh()
@@ -43,7 +45,7 @@ fun main(args: Array<String>) {
     val image = ImageIO.read(Paths.get("/Users/jetbrains/IdeaProjects/g1/src/main/resources/nanolena.png").toFile())
     val targetPath = Paths.get("/Users/jetbrains/IdeaProjects/g1/src/main/resources")
 
-    val matrix = showMatrix(generateGaborKernel(15, 45f, lambda = 6.0f ))
+    val matrix = showMatrix(generateGaborKernel(15, 90f, lambda = 6.0f ))
 //    generateMultiGauss(image, filters["gauss"]!!, targetPath)
     generatePreviews(targetPath, image, filters)
 }

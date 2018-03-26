@@ -2,9 +2,8 @@
 
 package sirgl.graphics.filter
 
-import sirgl.graphics.conversion.getBlue
-import sirgl.graphics.conversion.getGreen
-import sirgl.graphics.conversion.getRed
+import sirgl.graphics.conversion.*
+import java.awt.Color
 import java.awt.image.BufferedImage
 
 /**
@@ -31,6 +30,33 @@ inline fun convolveChanel(
             val matrixY = currentY - y + radius
             val kernelVal = matrix.getXY(matrixX, matrixY)
             sum += kernelVal * chanelValue
+        }
+    }
+    return sum
+}
+/**
+ * Expects, that [x] and [y] are far enough from bounds
+ */
+inline fun convolveChanelValue(
+        matrix: Matrix,
+        img: BufferedImage,
+        x: Int,
+        y: Int
+): Float {
+    val radius = matrix.width / 2
+    var sum = 0f
+    val startY = y - radius
+    val endY = y + radius
+    val startX = x - radius
+    val endX = x + radius
+    for (currentY in (startY..endY)) {
+        for (currentX in (startX..endX)) {
+            val rgb = img.getRGB(currentX, currentY)
+            val v = Color(rgb).toHsv().v
+            val matrixX = currentX - x + radius
+            val matrixY = currentY - y + radius
+            val kernelVal = matrix.getXY(matrixX, matrixY)
+            sum += kernelVal * v * 255
         }
     }
     return sum

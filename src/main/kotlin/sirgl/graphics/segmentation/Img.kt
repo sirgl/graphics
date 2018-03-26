@@ -1,9 +1,9 @@
 package sirgl.graphics.segmentation
 
 import sirgl.graphics.conversion.getRed
+import sirgl.graphics.segmentation.sam.rand
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.util.*
 
 
 interface ImgLike {
@@ -13,6 +13,14 @@ interface ImgLike {
     fun getRGB(x: Int, y: Int): Int
 
     fun setRGB(x: Int, y: Int, rgb: Int)
+}
+
+inline fun ImgLike.forEach(block: (Int, Int, Int) -> Unit) {
+    for (y in (0 until height)) {
+        for (x in (0 until width)) {
+            block(y, x, getRGB(x, y))
+        }
+    }
 }
 
 fun BufferedImage.toImg() = BufImg(this)
@@ -64,4 +72,12 @@ class MonoArrayImg(val arr: Array<ByteArray>) : ImgLike {
     }
 
 
+}
+
+fun randomColor() : Int {
+    // Will produce only bright / light colours:
+    val r = rand.nextFloat() / 2f + 0.5f
+    val g = rand.nextFloat() / 2f + 0.5f
+    val b = rand.nextFloat() / 2f + 0.5f
+    return Color(r, g, b).rgb
 }

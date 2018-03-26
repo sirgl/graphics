@@ -40,7 +40,7 @@ class RegionSplitTest {
                 byteArrayOf(9, 9, 9, 9, 0, 0, 0, 0),
                 byteArrayOf(9, 9, 9, 9, 0, 0, 0, 0)
         ))
-        val matrix = SplitMatrix(img)
+        val matrix = LabMatrix(img)
         val region = Region(img, matrix, 0.2f)
         split(region, metric)
         var currentMark = 0

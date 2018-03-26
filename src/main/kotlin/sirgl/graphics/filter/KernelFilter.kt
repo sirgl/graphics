@@ -8,7 +8,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("NOTHING_TO_INLINE")
-abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>) : ImageFilter {
+abstract class KernelFilter(open val kernelObservable: Observable<KernelInfo>) : ImageFilter {
     private var extendedImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
     private var normalizationBufferR = Matrix(0, 0)
     private var normalizationBufferG = Matrix(0, 0)
@@ -75,7 +75,7 @@ abstract class KernelFilter(private val kernelObservable: Observable<KernelInfo>
         }
     }
 
-    private fun traverse(srcHeight: Int, srcWidth: Int, edgeExtension: Int) {
+    protected fun traverse(srcHeight: Int, srcWidth: Int, edgeExtension: Int) {
         for (y in (0 until srcHeight)) {
             for (x in (0 until srcWidth)) {
                 val xShifted = x + edgeExtension

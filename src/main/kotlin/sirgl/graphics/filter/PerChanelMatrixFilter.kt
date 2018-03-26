@@ -4,7 +4,7 @@ import sirgl.graphics.observable.Observable
 import java.awt.image.BufferedImage
 
 open class PerChanelMatrixFilter(
-        val kernelObservable: Observable<KernelInfo>
+        override val kernelObservable: Observable<KernelInfo>
 ) : KernelFilter(kernelObservable) {
 
     override fun transformRGB(x: Int, y: Int, img: BufferedImage, rgb: RGB) {

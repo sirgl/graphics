@@ -3,15 +3,10 @@
 package sirgl.graphics.segmentation.sam
 
 import sirgl.graphics.conversion.LAB
-import sirgl.graphics.conversion.fromRgb
 import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
-import sirgl.graphics.segmentation.ImgLike
-import sirgl.graphics.segmentation.MonoArrayImg
-import sirgl.graphics.segmentation.computeCiede2000Metrics
-import sirgl.graphics.segmentation.toImg
-import java.awt.Color
+import sirgl.graphics.segmentation.*
 import java.awt.image.BufferedImage
 import java.util.*
 
@@ -25,7 +20,7 @@ class SplitAndMergeFilter(val threshold: Observable<Float> = SimpleObservable(TH
 }
 
 fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double = ::computeCiede2000Metrics, threshold: Float = THRESHOLD) {
-    val matrix = SplitMatrix(src)
+    val matrix = LabMatrix(src)
     val region = Region(src, matrix, threshold)
     split(region, metricFunc)
     var currentMark = 0
@@ -54,62 +49,6 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
 val rand = Random(42)
 
 
-fun randomColor() : Int {
-    // Will produce only bright / light colours:
-    val r = rand.nextFloat() / 2f + 0.5f
-    val g = rand.nextFloat() / 2f + 0.5f
-    val b = rand.nextFloat() / 2f + 0.5f
-    return Color(r, g, b).rgb
-}
-
-class SplitMatrix(img: ImgLike) {
-    val height = img.height
-    val width = img.width
-    val lBuffer = FloatArray(width * height)
-    val aBuffer = FloatArray(width * height)
-    val bBuffer = FloatArray(width * height)
-
-
-    fun fillLabFromXY(x: Int, y: Int, lab: LAB) {
-        val index = index(x, y)
-        lab.l = lBuffer[index]
-        lab.a = aBuffer[index]
-        lab.b = bBuffer[index]
-    }
-
-    fun setXYLab(x: Int, y: Int, value: LAB) {
-        val index = index(x, y)
-        lBuffer[index] = value.l
-        aBuffer[index] = value.a
-        bBuffer[index] = value.b
-    }
-
-    inline fun index(x: Int, y: Int) = x + width * y
-
-    init {
-        val labBuffer = LAB()
-        for (y in (0 until height)) {
-            for (x in (0 until width)) {
-                labBuffer.fromRgb(img.getRGB(x, y))
-                setXYLab(x, y, labBuffer)
-            }
-        }
-    }
-
-    inline fun forEach(action: (Int, Int, LAB) -> Unit) {
-        forEach(0, 0, width, height, action)
-    }
-
-    inline fun forEach(x1: Int, y1: Int, x2: Int, y2: Int, action: (Int, Int, LAB) -> Unit) {
-        val labBuffer = LAB()
-        for (y in (y1 until y2)) {
-            for (x in (x1 until x2)) {
-                fillLabFromXY(x, y, labBuffer)
-                action(x, y, labBuffer)
-            }
-        }
-    }
-}
 
 const val THRESHOLD = 0.02f
 
@@ -121,7 +60,7 @@ fun split(root: Region, metricFunc: (LAB, LAB) -> Double) {
 }
 
 class Region(
-        val matrix: SplitMatrix,
+        val matrix: LabMatrix,
         val xStart: Int,
         val yStart: Int,
         val xEnd: Int,
@@ -129,7 +68,7 @@ class Region(
         val threshold: Float,
         val parent: Region?
 ) {
-    constructor(img: ImgLike, matrix: SplitMatrix, threshold: Float) :
+    constructor(img: ImgLike, matrix: LabMatrix, threshold: Float) :
             this(matrix, 0, 0, img.width, img.height, threshold, null)
 
     var nextRegion: Region? = null
@@ -344,6 +283,10 @@ class Region(
             }
         }
     }
+}
+
+private class Area(region: Region) {
+    val regions = mutableSetOf(region)
 }
 
 private class Neighbors(
