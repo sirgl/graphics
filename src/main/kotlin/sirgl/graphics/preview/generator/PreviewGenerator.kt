@@ -36,7 +36,7 @@ fun main(args: Array<String>) {
             "gabor" to GaborFilter(
                     SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
             ),
-            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(5.0f)),
+            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(6.0f)),
             "normalizedSlice" to NormalizedSliceFilter()
     )
     hSlider.refresh()

@@ -7,6 +7,7 @@ import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.segmentation.*
+import sirgl.graphics.segmentation.sam.Region.Side.*
 import java.awt.image.BufferedImage
 import java.util.*
 
@@ -26,6 +27,7 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
     var currentMark = 0
     region.leafPass {
         it.mark = currentMark
+        it.meanLab = it.findMeanLab()
         currentMark++
     }
     region.leafPass {
@@ -44,6 +46,21 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
             res.setRGB(x, y, markToColor[it.getAreaMark()]!!)
         }
     }
+}
+
+private fun Region.findMeanLab(): LAB {
+    val meanLab = LAB()
+    var count = 0
+    matrix.forEach(xStart, yStart, xEnd, yEnd) { x, y, lab ->
+        meanLab.l += lab.l
+        meanLab.a += lab.a
+        meanLab.b += lab.b
+        count++
+    }
+    meanLab.l /= count
+    meanLab.a /= count
+    meanLab.b /= count
+    return meanLab
 }
 
 val rand = Random(42)
@@ -70,6 +87,8 @@ class Region(
 ) {
     constructor(img: ImgLike, matrix: LabMatrix, threshold: Float) :
             this(matrix, 0, 0, img.width, img.height, threshold, null)
+
+    var meanLab: LAB? = null // If is leaf it is not null
 
     var nextRegion: Region? = null
     var mark: Int = -1
@@ -179,97 +198,122 @@ class Region(
     }
 
     private fun findNeighbors(neighbors: Neighbors) {
-        var node: Region = parent ?: return
+        var parentNode: Region = parent ?: return
         val height = matrix.height
         val width = matrix.width
-        var current = this
+        var childNode = this
         while (true) {
-            when {
-                node.children[0] === current -> {
-                    if (neighbors.right.isEmpty()) {
-                        node.children[1].collectLeftSideChildren(neighbors.right)
-                    }
-                    if (neighbors.down.isEmpty()) {
-                        node.children[2].collectTopSideChildren(neighbors.down)
-                    }
-                }
-                node.children[3] === current -> {
-                    if (neighbors.top.isEmpty()) {
-                        node.children[1].collectDownSideChildren(neighbors.top)
-                    }
-                    if (neighbors.left.isEmpty()) {
-                        node.children[2].collectRightSideChildren(neighbors.left)
-                    }
-                }
-                node.children[1] === current -> {
-                    if (neighbors.left.isEmpty()) {
-                        node.children[0].collectRightSideChildren(neighbors.left)
-                    }
-                    if (neighbors.down.isEmpty()) {
-                        node.children[3].collectTopSideChildren(neighbors.down)
-                    }
-                }
-                node.children[2] === current -> {
-                    if (neighbors.top.isEmpty()) {
-                        node.children[0].collectDownSideChildren(neighbors.top)
-                    }
-                    if (neighbors.right.isEmpty()) {
-                        node.children[3].collectLeftSideChildren(neighbors.right)
-                    }
-                }
-            }
-            if ((node.xStart == 0 || neighbors.left.isNotEmpty()) &&
-                    (node.yStart == 0 || neighbors.top.isNotEmpty()) &&
-                    (node.xEnd == width || neighbors.right.isNotEmpty()) &&
-                    (node.yEnd == height || neighbors.down.isNotEmpty())
+            val (firstNeighborPos, secondNeighborPos) = findNeighborsInQuad(childNode, parentNode)
+            val sourcePosition = childNode.findPositionInParent(parentNode)
+            childNode.fillNeighborsForPosition(sourcePosition, firstNeighborPos, neighbors, parentNode)
+            childNode.fillNeighborsForPosition(sourcePosition, secondNeighborPos, neighbors, parentNode)
+            if (
+                    (neighbors.left.isNotEmpty() || parentNode.xStart == 0) &&
+                    (neighbors.right.isNotEmpty() || parentNode.xEnd == width) &&
+                    (neighbors.top.isNotEmpty() || parentNode.yStart == 0) &&
+                    (neighbors.down.isNotEmpty() || parentNode.yEnd == height)
             ) return
-            current = node
-            node = node.parent ?: return
+            childNode = parentNode
+            parentNode = parentNode.parent ?: return
+
         }
     }
 
-    private fun collectLeftSideChildren(list: MutableSet<Region>) {
-        collectInner(list) {
-            children[0].collectLeftSideChildren(list)
+    private fun fillNeighborsForPosition(
+            sourcePosition: Int,
+            firstNeighborPos: Int,
+            neighbors: Neighbors,
+            parentNode: Region
+    ) {
+        val side = findSide(sourcePosition, firstNeighborPos)
+        val neighborSide = side.opposite()
+        val neighborSideToFill = when (neighborSide) {
+            LEFT -> neighbors.left
+            TOP -> neighbors.top
+            RIGHT -> neighbors.right
+            DOWN -> neighbors.down
         }
-        collectInner(list) {
-            children[2].collectLeftSideChildren(list)
-        }
+        parentNode.children[firstNeighborPos].findAllChildrenAtSide(side, neighborSideToFill)
     }
 
-    private fun collectRightSideChildren(list: MutableSet<Region>) {
-        collectInner(list) {
-            children[1].collectRightSideChildren(list)
-        }
-        collectInner(list) {
-            children[3].collectRightSideChildren(list)
-        }
-    }
-
-    private fun collectTopSideChildren(list: MutableSet<Region>) {
-        collectInner(list) {
-            children[0].collectTopSideChildren(list)
-        }
-        collectInner(list) {
-            children[1].collectTopSideChildren(list)
-        }
-    }
-
-    private fun collectDownSideChildren(list: MutableSet<Region>) {
-        collectInner(list) {
-            children[2].collectDownSideChildren(list)
-        }
-        collectInner(list) {
-            children[3].collectDownSideChildren(list)
-        }
-    }
-
-    private inline fun collectInner(list: MutableSet<Region>, block: Region.() -> Unit) {
+    private fun findAllChildrenAtSide(side: Side, list: MutableList<Region>) {
         if (isLeaf()) {
             list.add(this)
-        } else {
-            block()
+            return
         }
+        when (side) {
+            LEFT -> {
+                children[LEFT_TOP].findAllChildrenAtSide(side, list)
+                children[LEFT_DOWN].findAllChildrenAtSide(side, list)
+            }
+            TOP -> {
+                children[LEFT_TOP].findAllChildrenAtSide(side, list)
+                children[RIGHT_TOP].findAllChildrenAtSide(side, list)
+            }
+            RIGHT -> {
+                children[RIGHT_TOP].findAllChildrenAtSide(side, list)
+                children[RIGHT_DOWN].findAllChildrenAtSide(side, list)
+            }
+            DOWN -> {
+                children[LEFT_DOWN].findAllChildrenAtSide(side, list)
+                children[RIGHT_DOWN].findAllChildrenAtSide(side, list)
+            }
+
+        }
+    }
+
+    private fun findPositionInParent(parentRegion: Region)  = when {
+        parentRegion.children[LEFT_TOP] === this -> LEFT_TOP
+        parentRegion.children[RIGHT_TOP] === this -> RIGHT_TOP
+        parentRegion.children[LEFT_DOWN] === this -> LEFT_DOWN
+        parentRegion.children[RIGHT_DOWN] === this -> RIGHT_DOWN
+        else -> throw IllegalStateException("Not a parent node")
+    }
+
+    enum class Side {
+        LEFT,
+        TOP,
+        RIGHT,
+        DOWN;
+
+        fun opposite()  = when (this) {
+            LEFT -> RIGHT
+            TOP -> DOWN
+            RIGHT -> LEFT
+            DOWN -> TOP
+        }
+    }
+
+    private inline fun findSide(sourcePos: Int, neighborPos: Int) = when (sourcePos) {
+        LEFT_TOP -> when (neighborPos) {
+            RIGHT_TOP -> LEFT
+            LEFT_DOWN -> TOP
+            else -> throw IllegalStateException("bad side")
+        }
+        RIGHT_TOP -> when (neighborPos) {
+            LEFT_TOP -> RIGHT
+            RIGHT_DOWN -> TOP
+            else -> throw IllegalStateException("bad side")
+        }
+        LEFT_DOWN -> when (neighborPos) {
+            LEFT_TOP -> DOWN
+            RIGHT_DOWN -> LEFT
+            else -> throw IllegalStateException("bad side")
+        }
+        RIGHT_DOWN -> when (neighborPos) {
+            LEFT_DOWN -> RIGHT
+            RIGHT_TOP -> DOWN
+            else -> throw IllegalStateException("bad side")
+        }
+        else -> throw IllegalStateException("bad side")
+    }
+
+    private inline fun findNeighborsInQuad(current: Region, parent: Region)  = when {
+        parent.children[LEFT_TOP] === current -> RIGHT_TOP to LEFT_DOWN
+        parent.children[RIGHT_TOP] === current -> LEFT_TOP to RIGHT_DOWN
+        parent.children[LEFT_DOWN] === current -> LEFT_TOP to RIGHT_DOWN
+        parent.children[RIGHT_DOWN] === current -> LEFT_DOWN to RIGHT_TOP
+        else -> throw IllegalStateException("Not a parent node")
     }
 
     fun printDebug(img: MonoArrayImg): String {
@@ -285,15 +329,20 @@ class Region(
     }
 }
 
-private class Area(region: Region) {
-    val regions = mutableSetOf(region)
+class Area (val region: Region) {
+    val members: MutableList<Region> = mutableListOf(region)
 }
 
+private const val LEFT_TOP = 0
+private const val RIGHT_TOP = 1
+private const val LEFT_DOWN = 2
+private const val RIGHT_DOWN = 3
+
 private class Neighbors(
-        val left: MutableSet<Region> = mutableSetOf(),
-        val right: MutableSet<Region> = mutableSetOf(),
-        val top: MutableSet<Region> = mutableSetOf(),
-        val down: MutableSet<Region> = mutableSetOf()
+        val left: MutableList<Region> = mutableListOf(),
+        val right: MutableList<Region> = mutableListOf(),
+        val top: MutableList<Region> = mutableListOf(),
+        val down: MutableList<Region> = mutableListOf()
 ) {
     fun flatten(): List<Region> {
         val mutableList = mutableListOf<Region>()
