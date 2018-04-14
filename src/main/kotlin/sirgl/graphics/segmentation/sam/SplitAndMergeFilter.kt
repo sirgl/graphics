@@ -7,7 +7,7 @@ import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.observable.Observable
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.segmentation.*
-import sirgl.graphics.segmentation.sam.Region.Side.*
+import sirgl.graphics.segmentation.sam.Side.*
 import java.awt.image.BufferedImage
 import java.util.*
 
@@ -37,10 +37,13 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
         }
     }
     val marks = mutableSetOf<Int>()
+    val markToColor = mutableMapOf<Int, Int>()
     region.leafPass {
-        marks.add(it.getAreaMark())
+        val areaMark = it.getAreaMark()
+        if (marks.add(areaMark)) {
+            markToColor[areaMark] = src.getRGB(it.xStart, it.yStart)
+        }
     }
-    val markToColor = marks.associate { it to randomColor() }
     region.leafPass {
         it.matrix.forEach(it.xStart, it.yStart, it.xEnd, it.yEnd) { x, y, _ ->
             res.setRGB(x, y, markToColor[it.getAreaMark()]!!)
@@ -188,19 +191,18 @@ class Region(
     // Local merge (considering only neighbor)
     private fun shouldMerge(neighbor: Region, metricFunc: (LAB, LAB) -> Double): Boolean {
         if (getAreaMark() == neighbor.getAreaMark()) return false
-        matrix.forEach(xStart, yStart, xEnd, yEnd) { _, _, lab1 ->
-            matrix.forEach(neighbor.xStart, neighbor.yStart, neighbor.xEnd, neighbor.yEnd) { _, _, lab2 ->
-                val metric = metricFunc(lab1, lab2)
-                if (metric > threshold) return false
-            }
-        }
-        return true
+//        matrix.forEach(xStart, yStart, xEnd, yEnd) { _, _, lab1 ->
+//            matrix.forEach(neighbor.xStart, neighbor.yStart, neighbor.xEnd, neighbor.yEnd) { _, _, lab2 ->
+//                val metric = metricFunc(lab1, lab2)
+//                if (metric > threshold) return false
+//            }
+//        }
+        return metricFunc(meanLab!!, neighbor.meanLab!!) <= threshold
+//        return true
     }
 
     private fun findNeighbors(neighbors: Neighbors) {
         var parentNode: Region = parent ?: return
-        val height = matrix.height
-        val width = matrix.width
         var childNode = this
         while (true) {
             val (firstNeighborPos, secondNeighborPos) = findNeighborsInQuad(childNode, parentNode)
@@ -208,10 +210,10 @@ class Region(
             childNode.fillNeighborsForPosition(sourcePosition, firstNeighborPos, neighbors, parentNode)
             childNode.fillNeighborsForPosition(sourcePosition, secondNeighborPos, neighbors, parentNode)
             if (
-                    (neighbors.left.isNotEmpty() || parentNode.xStart == 0) &&
-                    (neighbors.right.isNotEmpty() || parentNode.xEnd == width) &&
-                    (neighbors.top.isNotEmpty() || parentNode.yStart == 0) &&
-                    (neighbors.down.isNotEmpty() || parentNode.yEnd == height)
+                    (neighbors.left.isNotEmpty()) &&
+                    (neighbors.right.isNotEmpty()) &&
+                    (neighbors.top.isNotEmpty()) &&
+                    (neighbors.down.isNotEmpty())
             ) return
             childNode = parentNode
             parentNode = parentNode.parent ?: return
@@ -221,19 +223,19 @@ class Region(
 
     private fun fillNeighborsForPosition(
             sourcePosition: Int,
-            firstNeighborPos: Int,
+            neighborPos: Int,
             neighbors: Neighbors,
             parentNode: Region
     ) {
-        val side = findSide(sourcePosition, firstNeighborPos)
-        val neighborSide = side.opposite()
-        val neighborSideToFill = when (neighborSide) {
+        val side = findNeighborInternalSide(sourcePosition, neighborPos)
+        val neighborSideToFill = when (side.opposite()) {
             LEFT -> neighbors.left
             TOP -> neighbors.top
             RIGHT -> neighbors.right
             DOWN -> neighbors.down
         }
-        parentNode.children[firstNeighborPos].findAllChildrenAtSide(side, neighborSideToFill)
+        val neighbor = parentNode.children[neighborPos]
+        neighbor.findAllChildrenAtSide(side, neighborSideToFill)
     }
 
     private fun findAllChildrenAtSide(side: Side, list: MutableList<Region>) {
@@ -270,44 +272,6 @@ class Region(
         else -> throw IllegalStateException("Not a parent node")
     }
 
-    enum class Side {
-        LEFT,
-        TOP,
-        RIGHT,
-        DOWN;
-
-        fun opposite()  = when (this) {
-            LEFT -> RIGHT
-            TOP -> DOWN
-            RIGHT -> LEFT
-            DOWN -> TOP
-        }
-    }
-
-    private inline fun findSide(sourcePos: Int, neighborPos: Int) = when (sourcePos) {
-        LEFT_TOP -> when (neighborPos) {
-            RIGHT_TOP -> LEFT
-            LEFT_DOWN -> TOP
-            else -> throw IllegalStateException("bad side")
-        }
-        RIGHT_TOP -> when (neighborPos) {
-            LEFT_TOP -> RIGHT
-            RIGHT_DOWN -> TOP
-            else -> throw IllegalStateException("bad side")
-        }
-        LEFT_DOWN -> when (neighborPos) {
-            LEFT_TOP -> DOWN
-            RIGHT_DOWN -> LEFT
-            else -> throw IllegalStateException("bad side")
-        }
-        RIGHT_DOWN -> when (neighborPos) {
-            LEFT_DOWN -> RIGHT
-            RIGHT_TOP -> DOWN
-            else -> throw IllegalStateException("bad side")
-        }
-        else -> throw IllegalStateException("bad side")
-    }
-
     private inline fun findNeighborsInQuad(current: Region, parent: Region)  = when {
         parent.children[LEFT_TOP] === current -> RIGHT_TOP to LEFT_DOWN
         parent.children[RIGHT_TOP] === current -> LEFT_TOP to RIGHT_DOWN
@@ -327,6 +291,44 @@ class Region(
             }
         }
     }
+}
+
+enum class Side {
+    LEFT,
+    TOP,
+    RIGHT,
+    DOWN;
+
+    fun opposite()  = when (this) {
+        LEFT -> RIGHT
+        TOP -> DOWN
+        RIGHT -> LEFT
+        DOWN -> TOP
+    }
+}
+
+private inline fun findNeighborInternalSide(sourcePos: Int, neighborPos: Int) = when (sourcePos) {
+    LEFT_TOP -> when (neighborPos) {
+        RIGHT_TOP -> LEFT
+        LEFT_DOWN -> TOP
+        else -> throw IllegalStateException("bad side")
+    }
+    RIGHT_TOP -> when (neighborPos) {
+        LEFT_TOP -> RIGHT
+        RIGHT_DOWN -> TOP
+        else -> throw IllegalStateException("bad side")
+    }
+    LEFT_DOWN -> when (neighborPos) {
+        LEFT_TOP -> DOWN
+        RIGHT_DOWN -> LEFT
+        else -> throw IllegalStateException("bad side")
+    }
+    RIGHT_DOWN -> when (neighborPos) {
+        LEFT_DOWN -> RIGHT
+        RIGHT_TOP -> DOWN
+        else -> throw IllegalStateException("bad side")
+    }
+    else -> throw IllegalStateException("bad side")
 }
 
 class Area (val region: Region) {
