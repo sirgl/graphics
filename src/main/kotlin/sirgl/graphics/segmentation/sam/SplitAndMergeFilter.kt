@@ -207,8 +207,8 @@ class Region(
         while (true) {
             val (firstNeighborPos, secondNeighborPos) = findNeighborsInQuad(childNode, parentNode)
             val sourcePosition = childNode.findPositionInParent(parentNode)
-            childNode.fillNeighborsForPosition(sourcePosition, firstNeighborPos, neighbors, parentNode)
-            childNode.fillNeighborsForPosition(sourcePosition, secondNeighborPos, neighbors, parentNode)
+            childNode.fillNeighborsForPosition(sourcePosition, firstNeighborPos, neighbors, parentNode, this)
+            childNode.fillNeighborsForPosition(sourcePosition, secondNeighborPos, neighbors, parentNode, this)
             if (
                     (neighbors.left.isNotEmpty()) &&
                     (neighbors.right.isNotEmpty()) &&
@@ -225,7 +225,8 @@ class Region(
             sourcePosition: Int,
             neighborPos: Int,
             neighbors: Neighbors,
-            parentNode: Region
+            parentNode: Region,
+            src: Region
     ) {
         val side = findNeighborInternalSide(sourcePosition, neighborPos)
         val neighborSideToFill = when (side.opposite()) {
@@ -235,32 +236,43 @@ class Region(
             DOWN -> neighbors.down
         }
         val neighbor = parentNode.children[neighborPos]
-        neighbor.findAllChildrenAtSide(side, neighborSideToFill)
+        neighbor.findAllChildrenAtSide(side, neighborSideToFill, src)
     }
 
-    private fun findAllChildrenAtSide(side: Side, list: MutableList<Region>) {
+    // Need close restrictions
+    private fun findAllChildrenAtSide(side: Side, list: MutableList<Region>, src: Region) {
         if (isLeaf()) {
             list.add(this)
             return
         }
         when (side) {
             LEFT -> {
-                children[LEFT_TOP].findAllChildrenAtSide(side, list)
-                children[LEFT_DOWN].findAllChildrenAtSide(side, list)
+                children[LEFT_TOP].findAllChildrenAndCheck(side, list, src)
+                children[LEFT_DOWN].findAllChildrenAndCheck(side, list, src)
             }
             TOP -> {
-                children[LEFT_TOP].findAllChildrenAtSide(side, list)
-                children[RIGHT_TOP].findAllChildrenAtSide(side, list)
+                children[LEFT_TOP].findAllChildrenAndCheck(side, list, src)
+                children[RIGHT_TOP].findAllChildrenAndCheck(side, list, src)
             }
             RIGHT -> {
-                children[RIGHT_TOP].findAllChildrenAtSide(side, list)
-                children[RIGHT_DOWN].findAllChildrenAtSide(side, list)
+                children[RIGHT_TOP].findAllChildrenAndCheck(side, list, src)
+                children[RIGHT_DOWN].findAllChildrenAndCheck(side, list, src)
             }
             DOWN -> {
-                children[LEFT_DOWN].findAllChildrenAtSide(side, list)
-                children[RIGHT_DOWN].findAllChildrenAtSide(side, list)
+                children[LEFT_DOWN].findAllChildrenAndCheck(side, list, src)
+                children[RIGHT_DOWN].findAllChildrenAndCheck(side, list, src)
             }
 
+        }
+    }
+
+    private inline fun findAllChildrenAndCheck(side: Side, list: MutableList<Region>, src: Region) {
+        val isNeighbor = when (side) {
+            LEFT, RIGHT -> (yStart <= src.yStart && yEnd >= src.yEnd) || (src.yStart <= yStart && src.yEnd >= src.yEnd)
+            TOP, DOWN -> (xStart <= src.xStart && xEnd >= src.xEnd) || (src.xStart <= xStart && src.xEnd >= src.xEnd)
+        }
+        if (isNeighbor) {
+            findAllChildrenAtSide(side, list, src)
         }
     }
 
