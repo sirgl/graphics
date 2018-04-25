@@ -12,6 +12,8 @@ import sirgl.graphics.filter.hsv.HSVImageFilter
 import sirgl.graphics.filter.sobel.SobelFilter
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.refresh
+import sirgl.graphics.segmentation.meanshift.MeanShift2
+import sirgl.graphics.segmentation.meanshift.MeanShiftFilter
 import sirgl.graphics.segmentation.norrm.slice.NormalizedSliceFilter
 import sirgl.graphics.segmentation.sam.SplitAndMergeFilter
 import java.awt.Color
@@ -36,8 +38,10 @@ fun main(args: Array<String>) {
             "gabor" to GaborFilter(
                     SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
             ),
-            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(2.0f)),
-            "normalizedSlice" to NormalizedSliceFilter()
+//            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(2.0f)),
+//            "normalizedSlice" to NormalizedSliceFilter(),
+//            "meanShift" to MeanShiftFilter()
+            "meanShift" to MeanShift2()
     )
     hSlider.refresh()
     sSlider.refresh()

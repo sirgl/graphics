@@ -26,7 +26,7 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
     split(region, metricFunc)
     var currentMark = 0
     region.leafPass {
-        it.mark = currentMark
+        it.area = Area(it)
         it.meanLab = it.findMeanLab()
         currentMark++
     }
@@ -36,22 +36,22 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
             it.tryMergeWith(neighbor, metricFunc)
         }
     }
-    val marks = mutableSetOf<Int>()
-    val markToColor = mutableMapOf<Int, Int>()
+    val marks = mutableSetOf<Area>()
+    val markToColor = mutableMapOf<Area, Int>()
     region.leafPass {
-        val areaMark = it.getAreaMark()
+        val areaMark = it.area
         if (marks.add(areaMark)) {
             markToColor[areaMark] = src.getRGB(it.xStart, it.yStart)
         }
     }
     region.leafPass {
         it.matrix.forEach(it.xStart, it.yStart, it.xEnd, it.yEnd) { x, y, _ ->
-            res.setRGB(x, y, markToColor[it.getAreaMark()]!!)
+            res.setRGB(x, y, markToColor[it.area]!!)
         }
     }
 }
 
-private fun Region.findMeanLab(): LAB {
+fun Region.findMeanLab(): LAB {
     val meanLab = LAB()
     var count = 0
     matrix.forEach(xStart, yStart, xEnd, yEnd) { x, y, lab ->
@@ -93,21 +93,19 @@ class Region(
 
     var meanLab: LAB? = null // If is leaf it is not null
 
-    var nextRegion: Region? = null
-    var mark: Int = -1
 
     var children: Array<Region> = emptyArray()
 
-    fun getAreaMark(): Int {
-        var current: Region = this
-        while(true) {
-            current = current.nextRegion ?: break
-        }
-//        if (current != this) {
-//            nextRegion = current
-//        }
-        return current.mark
-    }
+    val leftTop: Region
+    get() = children[LEFT_TOP]
+    val rightTop: Region
+    get() = children[RIGHT_TOP]
+    val leftDown: Region
+    get() = children[LEFT_DOWN]
+    val rightDown: Region
+    get() = children[RIGHT_DOWN]
+
+    lateinit var area: Area // only for leafs
 
     fun prePass(action: (Region) -> Unit) {
         action(this)
@@ -184,21 +182,26 @@ class Region(
         }
     }
 
-    private fun mergeWith(neighbor: Region) {
-        nextRegion = neighbor
+    fun mergeWith(neighbor: Region) {
+        for (member in area.members) {
+            member.area = neighbor.area
+        }
+        neighbor.area.members.addAll(area.members)
+        println(area.members.size)
     }
 
     // Local merge (considering only neighbor)
     private fun shouldMerge(neighbor: Region, metricFunc: (LAB, LAB) -> Double): Boolean {
-        if (getAreaMark() == neighbor.getAreaMark()) return false
+        if (this === neighbor) throw IllegalStateException()
+        if (area === neighbor.area) return false
 //        matrix.forEach(xStart, yStart, xEnd, yEnd) { _, _, lab1 ->
 //            matrix.forEach(neighbor.xStart, neighbor.yStart, neighbor.xEnd, neighbor.yEnd) { _, _, lab2 ->
 //                val metric = metricFunc(lab1, lab2)
 //                if (metric > threshold) return false
 //            }
 //        }
-        return metricFunc(meanLab!!, neighbor.meanLab!!) <= threshold
-//        return true
+//        return metricFunc(meanLab!!, neighbor.meanLab!!) <= threshold // TODO get back
+        return true
     }
 
     private fun findNeighbors(neighbors: Neighbors) {
@@ -235,6 +238,7 @@ class Region(
             RIGHT -> neighbors.right
             DOWN -> neighbors.down
         }
+        if (neighborSideToFill.isNotEmpty()) return
         val neighbor = parentNode.children[neighborPos]
         neighbor.findAllChildrenAtSide(side, neighborSideToFill, src)
     }
@@ -268,13 +272,22 @@ class Region(
 
     private inline fun findAllChildrenAndCheck(side: Side, list: MutableList<Region>, src: Region) {
         val isNeighbor = when (side) {
-            LEFT, RIGHT -> (yStart <= src.yStart && yEnd >= src.yEnd) || (src.yStart <= yStart && src.yEnd >= src.yEnd)
-            TOP, DOWN -> (xStart <= src.xStart && xEnd >= src.xEnd) || (src.xStart <= xStart && src.xEnd >= src.xEnd)
+            LEFT -> leftRightCloseCondition(src) && src.xEnd == xStart
+            RIGHT -> leftRightCloseCondition(src) && src.xStart == xEnd
+            TOP -> topDownCloseCondition(src) && src.yEnd == yStart
+            DOWN -> topDownCloseCondition(src) && src.yStart == yEnd
         }
         if (isNeighbor) {
             findAllChildrenAtSide(side, list, src)
         }
     }
+
+    private inline fun topDownCloseCondition(src: Region) =
+            (xStart <= src.xStart && xEnd >= src.xEnd) || (src.xStart <= xStart && src.xEnd >= src.xEnd)
+
+    private inline fun leftRightCloseCondition(src: Region) =
+            (yStart <= src.yStart && yEnd >= src.yEnd) || (src.yStart <= yStart && src.yEnd >= src.yEnd)
+
 
     private fun findPositionInParent(parentRegion: Region)  = when {
         parentRegion.children[LEFT_TOP] === this -> LEFT_TOP

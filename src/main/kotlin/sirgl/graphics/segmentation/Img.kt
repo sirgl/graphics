@@ -4,6 +4,10 @@ import sirgl.graphics.conversion.getRed
 import sirgl.graphics.segmentation.sam.rand
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.awt.image.WritableRaster
+import java.awt.image.ColorModel
+
+
 
 
 interface ImgLike {
@@ -23,9 +27,18 @@ inline fun ImgLike.forEach(block: (Int, Int, Int) -> Unit) {
     }
 }
 
+fun deepCopy(bi: BufferedImage): BufferedImage {
+    val cm = bi.colorModel
+    val isAlphaPremultiplied = cm.isAlphaPremultiplied
+    val raster = bi.copyData(null)
+    return BufferedImage(cm, raster, isAlphaPremultiplied, null)
+}
+
 fun BufferedImage.toImg() = BufImg(this)
 
 class BufImg(val img: BufferedImage) : ImgLike {
+//    override fun copy() = BufImg(deepCopy(img))
+
     override fun setRGB(x: Int, y: Int, rgb: Int) {
         img.setRGB(x, y, rgb)
     }
@@ -54,13 +67,13 @@ class MonoArrayImg(val arr: Array<ByteArray>) : ImgLike {
         arr[y][x] = getRed(rgb).toByte()
     }
 
-    fun copy() : MonoArrayImg {
-        val arr = arr.clone()
-        for ((index, bytes) in this.arr.withIndex()) {
-            arr[index] = bytes.clone()
-        }
-        return MonoArrayImg(arr)
-    }
+//    fun copy() : MonoArrayImg {
+//        val arr = arr.clone()
+//        for ((index, bytes) in this.arr.withIndex()) {
+//            arr[index] = bytes.clone()
+//        }
+//        return MonoArrayImg(arr)
+//    }
 
     override fun toString() = buildString {
         for (bytes in arr) {

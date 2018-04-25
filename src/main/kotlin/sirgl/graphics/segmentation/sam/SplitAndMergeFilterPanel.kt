@@ -13,7 +13,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 class SplitAndMergeFilterPanel : JPanel() {
-    val thresholdObservable = SimpleObservable(5f)
+    val thresholdObservable = SimpleObservable(2f)
 
     init {
         size = Dimension(200, 50)
@@ -23,7 +23,7 @@ class SplitAndMergeFilterPanel : JPanel() {
         c.gridy = 0
         c.weightx = 1.0
         c.weighty = 1.0
-        val thresholdSpinner = ObservableFloatSpinner(1f, 20f, 4f, 0.5f)
+        val thresholdSpinner = ObservableFloatSpinner(1f, 20f, 2f, 0.5f)
         add(SplitPanel(JLabel("threshold"), thresholdSpinner, 1.0, 2.0), c)
         c.gridy++
         val applyButton = JButton("Apply")

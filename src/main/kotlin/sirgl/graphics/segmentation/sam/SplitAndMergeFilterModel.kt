@@ -7,7 +7,7 @@ import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.transmitTo
 
 class SplitAndMergeFilterModel(presentable: Presentable, filters: Filters) : FilterModel, Presentable by presentable {
-    val thresholdObservable = SimpleObservable(5f)
+    val thresholdObservable = SimpleObservable(2f)
     override val filter = SplitAndMergeFilter(thresholdObservable)
     override val panel = SplitAndMergeFilterPanel()
     init {
