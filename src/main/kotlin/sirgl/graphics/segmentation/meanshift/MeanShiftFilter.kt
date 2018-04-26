@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package sirgl.graphics.segmentation.meanshift
 
 import sirgl.graphics.conversion.LAB
@@ -33,7 +35,7 @@ fun applyMeanShift(
     for (row in copy) {
         for (point in row) {
             if (idx % 1000 == 0) {
-                println(idx.toString() + " positions handled")
+//                println(idx.toString() + " positions handled")
             }
             var previousShift = 12f
             var internalIdx = 0
