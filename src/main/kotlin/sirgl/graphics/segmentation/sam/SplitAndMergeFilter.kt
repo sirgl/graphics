@@ -30,11 +30,16 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
         it.meanLab = it.findMeanLab()
         currentMark++
     }
+    var currentRegionIndex = 0
     region.leafPass {
+        if (currentRegionIndex % 100 == 0) {
+            println(currentRegionIndex)
+        }
         val neighbors = it.findNeighbors()
         for (neighbor in neighbors) {
             it.tryMergeWith(neighbor, metricFunc)
         }
+        currentRegionIndex++
     }
     val marks = mutableSetOf<Area>()
     val markToColor = mutableMapOf<Area, Int>()
@@ -183,11 +188,12 @@ class Region(
     }
 
     fun mergeWith(neighbor: Region) {
+        val members = area.members
         for (member in area.members) {
             member.area = neighbor.area
         }
-        neighbor.area.members.addAll(area.members)
-        println(area.members.size)
+        neighbor.area.members.addAll(members)
+//        println(area.members.size)
     }
 
     // Local merge (considering only neighbor)
@@ -200,8 +206,8 @@ class Region(
 //                if (metric > threshold) return false
 //            }
 //        }
-//        return metricFunc(meanLab!!, neighbor.meanLab!!) <= threshold // TODO get back
-        return true
+        return metricFunc(meanLab!!, neighbor.meanLab!!) <= threshold // TODO get back
+//        return true
     }
 
     private fun findNeighbors(neighbors: Neighbors) {
