@@ -289,10 +289,10 @@ class Region(
     }
 
     private inline fun topDownCloseCondition(src: Region) =
-            (xStart <= src.xStart && xEnd >= src.xEnd) || (src.xStart <= xStart && src.xEnd >= src.xEnd)
+            (xStart <= src.xStart && xEnd >= src.xEnd) || (src.xStart <= xStart && src.xEnd >= xEnd)
 
     private inline fun leftRightCloseCondition(src: Region) =
-            (yStart <= src.yStart && yEnd >= src.yEnd) || (src.yStart <= yStart && src.yEnd >= src.yEnd)
+            (yStart <= src.yStart && yEnd >= src.yEnd) || (src.yStart <= yStart && src.yEnd >= yEnd)
 
 
     private fun findPositionInParent(parentRegion: Region)  = when {

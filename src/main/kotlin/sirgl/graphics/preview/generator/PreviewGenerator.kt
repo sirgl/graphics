@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
             "gabor" to GaborFilter(
                     SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
             ),
-//            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(2.0f)),
+            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(3.0f)),
 //            "normalizedSlice" to NormalizedSliceFilter(),
 //            "meanShift" to MeanShiftFilter()
             "meanShift" to MeanShift2()
