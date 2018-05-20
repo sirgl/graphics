@@ -42,7 +42,7 @@ fun splitAndMerge(src: ImgLike, res: ImgLike, metricFunc: (LAB, LAB) -> Double =
         currentRegionIndex++
     }
     val marks = mutableSetOf<Area>()
-    val markToColor = mutableMapOf<Area, Int>()
+    val markToColor = hashMapOf<Area, Int>()
     region.leafPass {
         val areaMark = it.area
         if (marks.add(areaMark)) {

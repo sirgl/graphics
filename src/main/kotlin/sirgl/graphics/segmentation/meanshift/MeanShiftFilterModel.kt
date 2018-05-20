@@ -7,6 +7,6 @@ import sirgl.graphics.ui.InvisiblePanel
 import javax.swing.JPanel
 
 class MeanShiftFilterModel(val presentable: Presentable) : FilterModel, Presentable by presentable {
-    override val filter: ImageFilter = MeanShift2()
+    override val filter: ImageFilter = MeanShiftFilter()
     override val panel: JPanel = InvisiblePanel()
 }

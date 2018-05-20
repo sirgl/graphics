@@ -7,118 +7,116 @@ import sirgl.graphics.conversion.fromRgb
 import sirgl.graphics.filter.ImageFilter
 import sirgl.graphics.segmentation.ImgLike
 import sirgl.graphics.segmentation.computeCiede2000Metrics
-import sirgl.graphics.segmentation.toImg
 import java.awt.image.BufferedImage
-import kotlin.math.abs
-
-class MeanShiftFilter : ImageFilter {
-    override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
-        val srcImg = src.toImg()
-        val resImg = res.toImg()
-        applyMeanShift(srcImg, resImg)
-        return true
-    }
-}
-
-fun applyMeanShift(
-        src: ImgLike,
-        res: ImgLike,
-        distanceF: (Point, Point) -> Float = ::labDistance,
-        kernelWidth: Float = 3f,
-        kernel: (Float, Float) -> Float = ::kernelEpanch
-) {
-    val bufferLab = LAB()
-    val copy = toPointMatrix(src, bufferLab)
-    val original = toPointMatrix(src, bufferLab)
-
-    var idx = 0
-    for (row in copy) {
-        for (point in row) {
-            if (idx % 1000 == 0) {
-//                println(idx.toString() + " positions handled")
-            }
-            var previousShift = 12f
-            var internalIdx = 0
-            while (previousShift > 0.04) {
-                previousShift = point.shift(original, distanceF, kernelWidth, kernel)
-                internalIdx++
-            }
-//            println(internalIdx.toString() + " iterations")
-            idx++
-        }
-    }
-
-    val coordinateToColor = mutableMapOf<Coordinate, Int>()
-    for ((y, row) in copy.withIndex()) {
-        for ((x, point) in row.withIndex()) {
-            val coordinate = Coordinate(point.x.toInt(), point.y.toInt())
-            val color = coordinateToColor.computeIfAbsent(coordinate, { src.getRGB(x, y) })
-            res.setRGB(x, y, color)
-        }
-    }
-    println("${coordinateToColor.size} colors")
-}
-
-data class Coordinate(
-        val x: Int,
-        val y: Int
-)
-
-private fun toPointMatrix(src: ImgLike, bufferLab: LAB): MutableList<MutableList<Point>> {
-    val matrix = mutableListOf<MutableList<Point>>()
-    for (y in (0 until src.height)) {
-        val row = mutableListOf<Point>()
-        matrix.add(row)
-        for (x in (0 until src.width)) {
-            bufferLab.fromRgb(src.getRGB(x, y))
-            row.add(Point(
-                    x.toFloat(),
-                    y.toFloat(),
-                    LAB(bufferLab.l, bufferLab.a, bufferLab.b)
-            ))
-        }
-    }
-    return matrix
-}
+import java.lang.Math.pow
+import kotlin.math.PI
+import kotlin.math.exp
+import kotlin.math.sqrt
 
 class Point(
-        var x: Float,
-        var y: Float,
-        val lab: LAB
-) {
-    fun shift(
-            originalPoints: MutableList<MutableList<Point>>,
-            distanceFunc: (Point, Point) -> Float,
-            kernelWidth: Float,
-            kernel: (Float, Float) -> Float
-    ): Float {
+    var x: Float,
+    var y: Float,
+    var lab: LAB
+)
+
+open class MeanShiftFilter(val maxDistance: Double = 0.002, val kernelBandWidth: Float = 20f) : ImageFilter {
+    override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
+        val orig = mutableListOf<MutableList<Point>>()
+        val copy = createCopy(src, orig)
+        shift(copy, orig)
+
+        val coordinateToColor = mutableMapOf<Coord, Int>()
+
+        for ((originalX, row) in copy.withIndex()) {
+            for ((originalY, point) in row.withIndex()) {
+                val shiftedX = point.x.toInt()
+                val shiftedY = point.y.toInt()
+                val coordinate = Coord(shiftedX, shiftedY)
+
+                var color = coordinateToColor[coordinate]
+                if (color == null) {
+                    color = coordinateToColor.computeIfAbsent(coordinate, {
+                        src.getRGB(originalX, originalY)
+                    })
+                }
+                res.setRGB(originalX, originalY, color)
+            }
+        }
+        return true
+    }
+
+    private fun shift(
+        copy: MutableList<MutableList<Point>>,
+        original: MutableList<MutableList<Point>>
+    ) {
+        for (copyList in copy) {
+            for (point in copyList) {
+                var iterationNumber = 0
+                do {
+                    val oldValue = point
+                    shift(point,
+                        original,
+                        { p1: Point, p2: Point -> computeCiede2000Metrics(p1.lab, p2.lab).toFloat() },
+                        kernelBandWidth,
+                        { distance: Float, bandwidth: Float -> gaussianKernel(distance, bandwidth).toFloat() })
+                    iterationNumber++
+                    val distance = computeCiede2000Metrics(oldValue.lab, point.lab)
+                } while (distance > maxDistance)
+            }
+        }
+    }
+
+    private fun createCopy(
+        src: BufferedImage,
+        original: MutableList<MutableList<Point>>
+    ): MutableList<MutableList<Point>> {
+        val copy = mutableListOf<MutableList<Point>>()
+        for (x in 0 until src.width) {
+            original.add(mutableListOf())
+            copy.add(mutableListOf())
+            for (y in 0 until src.height) {
+                val lab = LAB()
+                lab.fromRgb(src.getRGB(x, y))
+                original[x].add(Point(x.toFloat(), y.toFloat(), lab))
+                copy[x].add(Point(x.toFloat(), y.toFloat(), lab))
+            }
+        }
+        return copy
+    }
+
+    private fun shift(
+        currentPoint: Point,
+        originalPoints: List<MutableList<Point>>,
+        distanceFunc: (Point, Point) -> Float,
+        kernelWidth: Float,
+        kernel: (Float, Float) -> Float
+    ) {
         var shiftX = 0f
         var shiftY = 0f
         var scaleFactor = 0f
         for (row in originalPoints) {
             for (point in row) {
-                val distance = distanceFunc(this, point)
+                val distance = distanceFunc(currentPoint, point)
                 val weight = kernel(distance, kernelWidth)
                 shiftX += point.x * weight
                 shiftY += point.y * weight
                 scaleFactor += weight
             }
         }
-
         val newX = shiftX / scaleFactor
         val newY = shiftY / scaleFactor
-        val shift = abs(x - newX) + abs(y - newY)
-        x = newX
-        y = newY
-        return shift
+        currentPoint.x = newX
+        currentPoint.y = newY
+        currentPoint.lab = originalPoints[newX.toInt()][newY.toInt()].lab
     }
+
+    fun gaussianKernel(distance: Float, kernelWidth: Float): Double {
+        return (1 / (kernelWidth * sqrt(2 * PI))) * exp(-0.5 * pow(distance / kernelWidth.toDouble(), 2.0))
+    }
+
 }
 
-fun labDistance(p1: Point, p2: Point)  = computeCiede2000Metrics(p1.lab, p2.lab).toFloat()
-
-fun manhattanDist(p1: Point, p2: Point) = abs(p1.x - p2.x) + abs(p1.y - p2.y)
-
-fun kernelEpanch(distance: Float, kernelWidth: Float): Float {
-    if (distance >= kernelWidth) return 0f
-    return 0.75f * ( 1 - (distance / kernelWidth) * (distance / kernelWidth))
-}
+data class Coord(
+    val x: Int,
+    val y: Int
+)

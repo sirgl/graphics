@@ -22,6 +22,10 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+
+    compile group: 'org.nd4j', name: 'nd4j-api', version: '0.9.1'
+    compile group: 'org.nd4j', name: 'nd4j-common', version: '0.9.1'
+    compile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
 }
 
 compileKotlin {

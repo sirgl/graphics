@@ -13,7 +13,9 @@ import sirgl.graphics.filter.sobel.SobelFilter
 import sirgl.graphics.observable.SimpleObservable
 import sirgl.graphics.observable.refresh
 import sirgl.graphics.segmentation.meanshift.MeanShift2
+import sirgl.graphics.segmentation.meanshift.MeanShift2Filter
 import sirgl.graphics.segmentation.meanshift.MeanShiftFilter
+import sirgl.graphics.segmentation.norrm.slice.NormCut
 import sirgl.graphics.segmentation.norrm.slice.NormalizedSliceFilter
 import sirgl.graphics.segmentation.sam.SplitAndMergeFilter
 import java.awt.Color
@@ -29,19 +31,20 @@ fun main(args: Array<String>) {
     val sSlider = SimpleObservable(60)
     val vSlider = SimpleObservable(30)
     val filters: Map<String, ImageFilter> = mapOf(
-            "grayscale" to GrayscaleFilter(),
-            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
-            "sobel" to SobelFilter(),
-            "gauss" to PerChanelMatrixFilter(
-                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
-            ),
-            "gabor" to GaborFilter(
-                    SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
-            ),
-            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(3.0f)),
+//            "grayscale" to GrayscaleFilter(),
+//            "hsv" to HSVImageFilter(hSlider, sSlider, vSlider),
+//            "sobel" to SobelFilter(),
+//            "gauss" to PerChanelMatrixFilter(
+//                    SimpleObservable(MatrixKernelInfo(generateGaussMatrix(7, 1f)))
+//            ),
+//            "gabor" to GaborFilter(
+//                    SimpleObservable(MatrixKernelInfo(generateGaborKernel(5, 0f)))
+//            ),
+//            "splitAndMerge" to SplitAndMergeFilter(SimpleObservable(3.0f)),
 //            "normalizedSlice" to NormalizedSliceFilter(),
 //            "meanShift" to MeanShiftFilter()
-            "meanShift" to MeanShift2()
+//            "meanShift" to MeanShift2()
+            "normCut" to MeanShift2Filter({})
     )
     hSlider.refresh()
     sSlider.refresh()

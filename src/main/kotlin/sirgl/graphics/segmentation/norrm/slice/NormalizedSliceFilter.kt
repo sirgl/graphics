@@ -8,6 +8,7 @@ import sirgl.graphics.segmentation.*
 import java.awt.image.BufferedImage
 import kotlin.math.min
 
+// Not working
 class NormalizedSliceFilter(private val metricFunc: (LAB, LAB) -> Double = ::computeCiede2000Metrics) : ImageFilter {
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val srcImg = src.toImg()
