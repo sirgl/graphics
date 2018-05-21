@@ -2,6 +2,7 @@ package sirgl.graphics.segmentation
 
 import org.junit.Test
 import sirgl.graphics.conversion.LAB
+import sirgl.graphics.segmentation.norrm.slice.NormCut
 import sirgl.graphics.segmentation.norrm.slice.normCut
 import sirgl.graphics.segmentation.sam.splitAndMerge
 import kotlin.test.assertEquals
@@ -18,6 +19,7 @@ class NcutTest {
                 byteArrayOf(2, 2)
             )
         )
+        NormCut()
         normCut(img, img, metric)
 
     }

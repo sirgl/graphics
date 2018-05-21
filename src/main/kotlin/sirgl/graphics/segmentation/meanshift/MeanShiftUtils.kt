@@ -10,7 +10,7 @@ import sirgl.graphics.segmentation.deepCopy
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-class MeanShift2(val delayFunc: (ImgLike) -> Unit) : ImageFilter {
+open class MeanShift2(val delayFunc: (ImgLike) -> Unit) : ImageFilter {
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val image = BufImg(deepCopy(src))
         MeanShift(30f, 5).apply(image)
@@ -142,7 +142,7 @@ class MeanShift(private val colorDistance: Float, private val radius: Int) {
     }
 }
 
-class MeanShift2Filter(val delayFunc: (ImgLike) -> Unit) : MeanShiftFilter(0.002, 25f) {
+class MeanShift2Filter(delayFunc: (ImgLike) -> Unit) : MeanShift2(delayFunc) {
     override fun transform(src: BufferedImage, res: BufferedImage): Boolean {
         val transform = super.transform(src, res)
         delayFunc(BufImg(src))
